@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <link rel="stylesheet" href="./assets/css/wms.css">
+  <meta charset="UTF-8">
+  <title>Complément WMS – Portail</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root{
+      --primary:#0072C6;
+      --bg:#F5F6F8;
+      --card:#ffffff;
+      --border:#E1E4E8;
+      --text:#111827;
+      --muted:#6b7280;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    header{
+      background:var(--primary);
+      color:#fff;
+      padding:1rem;
+      text-align:center;
+    }
+    header h1{
+      margin:0;
+      font-size:1.2rem;
+      font-weight:600;
+    }
+    header p{
+      margin:0.3rem 0 0;
+      font-size:0.85rem;
+      opacity:0.9;
+    }
+    main{
+      max-width:900px;
+      margin:0 auto;
+      padding:1rem;
+    }
+    .grid{
+      display:flex;
+      flex-wrap:wrap;
+      gap:1rem;
+    }
+    .card{
+      flex:1 1 260px;
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:1rem;
+      box-shadow:0 1px 4px rgba(0,0,0,0.06);
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      min-height:150px;
+    }
+    .card h2{
+      margin:0 0 0.3rem;
+      font-size:1rem;
+    }
+    .tag{
+      display:inline-block;
+      font-size:0.7rem;
+      text-transform:uppercase;
+      letter-spacing:0.04em;
+      color:#2563eb;
+      background:#dbeafe;
+      border-radius:999px;
+      padding:0.12rem 0.5rem;
+      margin-bottom:0.4rem;
+    }
+    .card p{
+      margin:0;
+      font-size:0.85rem;
+      color:var(--muted);
+    }
+    .card-footer{
+      margin-top:0.8rem;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      font-size:0.8rem;
+      color:var(--muted);
+    }
+    a.btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:0.45rem 0.9rem;
+      border-radius:999px;
+      background:var(--primary);
+      color:#fff;
+      font-size:0.85rem;
+      font-weight:600;
+      text-decoration:none;
+      white-space:nowrap;
+    }
+    footer{
+      text-align:center;
+      font-size:0.75rem;
+      color:var(--muted);
+      margin:1.5rem 0 1rem;
+    }
+    @media(max-width:600px){
+      .card{flex:1 1 100%;}
+      header h1{font-size:1.05rem;}
+    }
+  </style>
+</head>
+<body>
+<nav class="wms-nav">
+  <div class="wms-nav-title">Complément WMS</div>
+  <div class="wms-nav-links">
+    <a href="index.html">Accueil</a>
+  </div>
+</nav>
+
+<header>
+  <h1>Complément WMS</h1>
+  <p>Outils logistiques internes • Inventaire • Consolidation • Expéditions</p>
+</header>
+<main>
+  <div class="grid">
+    <div class="card">
+      <div>
+        <div class="tag">Inventaire</div>
+        <h2>Outil Inventaire</h2>
+        <p>Import CSV Indago, vue globale, règles P1–P7 et recommandations.</p>
+      </div>
+      <div class="card-footer">
+        <span>Expert / Terrain</span>
+        <a class="btn" href="apps/inventaire/inventaire.html">Ouvrir</a>
+      </div>
+    </div>
+    <div class="card">
+      <div>
+        <div class="tag">Consolidation</div>
+        <h2>Ultra Focus</h2>
+        <p>SKU multi-bins, Top N mouvements, capacités et plan terrain.</p>
+      </div>
+      <div class="card-footer">
+        <span>Décision rapide</span>
+        <a class="btn" href="apps/consolidation/consolidation.html">Ouvrir</a>
+      </div>
+    </div>
+    <div class="card">
+      <div>
+        <div class="tag">Expéditions</div>
+        <h2>Suivi des palettes</h2>
+        <p>Création palettes, scan caméra, manifeste et export PDF.</p>
+      </div>
+      <div class="card-footer">
+        <span>Terrain (iPhone)</span>
+        <a class="btn" href="apps/expeditions/expeditions.html">Ouvrir</a>
+      </div>
+    </div>
+  </div>
+</main>
+<footer>
+  © 2026 – Complément WMS – Version v1.0 · Phase 4
+</footer>
+</body>
+</html>

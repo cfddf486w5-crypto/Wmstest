@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <link rel="stylesheet" href="../assets/css/wms.css">
+  <meta charset="UTF-8">
+  <title>Complément WMS – Tâches terrain</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root{
+      --primary:#0072C6;
+      --bg:#F5F6F8;
+      --card:#ffffff;
+      --border:#E1E4E8;
+      --text:#111827;
+      --muted:#6b7280;
+      --ok:#10b981;
+      --warn:#f59e0b;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    header{
+      background:var(--primary);
+      color:#fff;
+      padding:1rem;
+      text-align:center;
+    }
+    header h1{
+      margin:0;
+      font-size:1.2rem;
+    }
+    header p{
+      margin:0.3rem 0 0;
+      font-size:0.85rem;
+      opacity:0.9;
+    }
+    main{
+      max-width:960px;
+      margin:0 auto;
+      padding:0.8rem;
+    }
+    .card{
+      background:var(--card);
+      border-radius:12px;
+      border:1px solid var(--border);
+      padding:0.8rem 0.9rem;
+      margin-bottom:0.8rem;
+      box-shadow:0 1px 4px rgba(0,0,0,0.06);
+    }
+    .card h2{
+      margin:0 0 0.5rem;
+      font-size:1rem;
+    }
+    .filters{
+      display:flex;
+      flex-wrap:wrap;
+      gap:0.5rem;
+      margin-bottom:0.4rem;
+      font-size:0.8rem;
+    }
+    .filters input,
+    .filters select{
+      padding:0.3rem 0.4rem;
+      border-radius:999px;
+      border:1px solid var(--border);
+      font-size:0.8rem;
+    }
+    .filters button{
+      padding:0.35rem 0.7rem;
+      border-radius:999px;
+      border:none;
+      background:var(--primary);
+      color:#fff;
+      font-size:0.8rem;
+      cursor:pointer;
+    }
+    .task{
+      display:flex;
+      align-items:flex-start;
+      gap:0.55rem;
+      padding:0.5rem 0;
+      border-top:1px solid #e5e7eb;
+      font-size:0.85rem;
+    }
+    .task:first-of-type{
+      border-top:none;
+    }
+    .task input[type=checkbox]{
+      margin-top:0.2rem;
+      transform:scale(1.1);
+    }
+    .task-main b{
+      font-size:0.9rem;
+    }
+    .task-meta{
+      font-size:0.75rem;
+      color:var(--muted);
+      margin-top:0.15rem;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:0.2rem;
+      padding:0.1rem 0.45rem;
+      border-radius:999px;
+      font-size:0.7rem;
+      background:#e5e7eb;
+      color:#374151;
+      margin-right:0.25rem;
+    }
+    .badge-dot{
+      width:0.45rem;
+      height:0.45rem;
+      border-radius:999px;
+      background:#9ca3af;
+    }
+    .badge-src-conso .badge-dot{ background:#6366f1; }
+    .badge-src-inv .badge-dot{ background:#0ea5e9; }
+    .badge-prio-haute .badge-dot{ background:#ef4444; }
+    .badge-prio-moy .badge-dot{ background:#f59e0b; }
+    .badge-prio-basse .badge-dot{ background:#10b981; }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:0.2rem 0.45rem;
+      border-radius:999px;
+      font-size:0.7rem;
+      background:#ecfdf3;
+      color:#15803d;
+      border:1px solid #bbf7d0;
+      margin-left:0.25rem;
+    }
+    .section-label{
+      font-size:0.75rem;
+      color:var(--muted);
+      margin-bottom:0.25rem;
+      text-transform:uppercase;
+      letter-spacing:0.05em;
+    }
+    footer{
+      text-align:center;
+      font-size:0.75rem;
+      color:var(--muted);
+      margin:1.2rem 0 0.8rem;
+    }
+    @media(max-width:600px){
+      header h1{font-size:1.1rem;}
+      main{padding:0.7rem;}
+    }
+  </style>
+</head>
+<body>
+<nav class="wms-nav">
+  <div class="wms-nav-title">Complément WMS</div>
+  <div class="wms-nav-links">
+    <a href="../index.html">Accueil</a>
+  </div>
+</nav>
+
+
+<header>
+  <h1>Complément WMS – Tâches terrain</h1>
+  <p>Vue globale des déplacements à exécuter sur le plancher</p>
+</header>
+
+<main>
+
+  <div class="card">
+    <div class="section-label">Filtrer la liste</div>
+    <div class="filters">
+      <select id="sourceFilter">
+        <option value="">Source (toutes)</option>
+        <option value="conso">Consolidation</option>
+        <option value="inv">Inventaire</option>
+      </select>
+      <select id="prioFilter">
+        <option value="">Priorité (toutes)</option>
+        <option value="H">Haute</option>
+        <option value="M">Moyenne</option>
+        <option value="B">Basse</option>
+      </select>
+      <input id="zoneFilter" type="text" placeholder="Zone (ex: L2, L3A)" />
+      <button type="button" onclick="applyFilters()">Appliquer</button>
+    </div>
+    <p style="font-size:0.78rem;color:var(--muted);margin:0;">
+      Cette page est une <b>vue terrain unique</b> : elle rassemble les idées de tâches venant
+      de la consolidation et de l’inventaire. Dans une future version connectée, la liste sera
+      alimentée automatiquement par les autres modules.
+    </p>
+  </div>
+
+  <div class="card" id="tasksCard">
+    <h2>Tâches à exécuter</h2>
+    <div id="tasksContainer">
+      <!-- Exemple de tâches statiques comme base visuelle -->
+      <div class="task" data-src="conso" data-prio="H" data-zone="L3A">
+        <input type="checkbox" onchange="toggleDone(this)" />
+        <div class="task-main">
+          <div>
+            <span class="badge badge-src-conso"><span class="badge-dot"></span>Consolidation</span>
+            <span class="badge badge-prio-haute"><span class="badge-dot"></span>Haute</span>
+          </div>
+          <b>L3A15 → L3A11 | SKU direction/suspension</b>
+          <div class="task-meta">
+            Zone : L3A • Qty : 42 • Bin principal : L3A11
+            <span class="pill">P1 / P2 priorité</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="task" data-src="conso" data-prio="M" data-zone="L2">
+        <input type="checkbox" onchange="toggleDone(this)" />
+        <div class="task-main">
+          <div>
+            <span class="badge badge-src-conso"><span class="badge-dot"></span>Consolidation</span>
+            <span class="badge badge-prio-moy"><span class="badge-dot"></span>Moyenne</span>
+          </div>
+          <b>L2A21 → L2A17 | SKU freins</b>
+          <div class="task-meta">
+            Zone : L2 • Qty : 18 • Regrouper le stock avant prochain conteneur.
+          </div>
+        </div>
+      </div>
+
+      <div class="task" data-src="inv" data-prio="B" data-zone="L3B">
+        <input type="checkbox" onchange="toggleDone(this)" />
+        <div class="task-main">
+          <div>
+            <span class="badge badge-src-inv"><span class="badge-dot"></span>Inventaire</span>
+            <span class="badge badge-prio-basse"><span class="badge-dot"></span>Basse</span>
+          </div>
+          <b>Vérifier bins vides L3B (spotage)</b>
+          <div class="task-meta">
+            Zone : L3B • Contrôle rapide des bins déclarés vides par V25.
+          </div>
+        </div>
+      </div>
+
+      <div class="task" data-src="inv" data-prio="M" data-zone="L3D">
+        <input type="checkbox" onchange="toggleDone(this)" />
+        <div class="task-main">
+          <div>
+            <span class="badge badge-src-inv"><span class="badge-dot"></span>Inventaire</span>
+            <span class="badge badge-prio-moy"><span class="badge-dot"></span>Moyenne</span>
+          </div>
+          <b>Contrôle ciblé – L3D P1/P3</b>
+          <div class="task-meta">
+            Zone : L3D • Vérifier cohérence qty VS rapport Indago sur les bacs P1/P3 critiques.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p style="font-size:0.78rem;color:var(--muted);margin-top:0.6rem;">
+      ✅ Astuce : dans une prochaine version, cette liste sera générée automatiquement à partir
+      des exports de la consolidation et de l’inventaire (V25). Pour l’instant, elle sert de
+      base visuelle et de modèle pour les tâches terrain.
+    </p>
+  </div>
+
+</main>
+
+<footer>
+  © 2026 – Complément WMS – Version v1.0 · Phase 4
+</footer>
+
+<script>
+function toggleDone(cb){
+  const task = cb.closest('.task');
+  if(!task) return;
+  const main = task.querySelector('.task-main');
+  if(cb.checked){
+    task.style.opacity = '0.5';
+    if(main){ main.style.textDecoration = 'line-through'; }
+  }else{
+    task.style.opacity = '1';
+    if(main){ main.style.textDecoration = 'none'; }
+  }
+}
+
+function applyFilters(){
+  const src = document.getElementById('sourceFilter').value;
+  const prio = document.getElementById('prioFilter').value;
+  const zone = (document.getElementById('zoneFilter').value || '').toUpperCase().trim();
+
+  document.querySelectorAll('.task').forEach(t=>{
+    const tSrc = t.getAttribute('data-src') || '';
+    const tPrio = t.getAttribute('data-prio') || '';
+    const tZone = (t.getAttribute('data-zone') || '').toUpperCase();
+
+    let visible = true;
+
+    if(src && tSrc !== src) visible = false;
+    if(prio && tPrio !== prio) visible = false;
+    if(zone && tZone.indexOf(zone) !== 0) visible = false;
+
+    t.style.display = visible ? 'flex' : 'none';
+  });
+}
+</script>
+
+</body>
+</html>

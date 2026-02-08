@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <link rel="stylesheet" href="../../assets/css/wms.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Complément WMS – Consolidation</title>
+<style>
+:root{
+  --primary:#0072C6;
+  --bg:#F5F6F8;
+  --card:#ffffff;
+  --border:#E1E4E8;
+  --text:#222;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+header{
+  background:var(--primary);
+  color:#fff;
+  padding:0.8rem 1rem;
+  font-size:1.1rem;
+  font-weight:600;
+  text-align:center;
+}
+main{
+  padding:1rem;
+  max-width:1100px;
+  margin:auto;
+}
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:0.1rem 0.9rem 0.8rem;
+  margin-bottom:0.9rem;
+  box-shadow:0 1px 3px rgba(0,0,0,0.08);
+}
+.card-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:0.5rem;
+  padding:0.6rem 0;
+  cursor:pointer;
+}
+.card-title{
+  margin:0;
+  font-size:1rem;
+  font-weight:600;
+}
+.card-sub{
+  font-size:0.8rem;
+  color:#6b7280;
+}
+.card-body{
+  border-top:1px solid var(--border);
+  padding-top:0.6rem;
+}
+.card.collapsed .card-body{
+  display:none;
+}
+.card.collapsed .chevron{
+  transform:rotate(-90deg);
+}
+.muted{color:#555;font-size:0.85rem}
+
+button{
+  background:var(--primary);
+  color:#fff;
+  border:none;
+  border-radius:999px;
+  padding:0.5rem 0.9rem;
+  font-size:0.85rem;
+  cursor:pointer;
+}
+button.secondary{
+  background:#6b7280;
+}
+input[type=file]{
+  margin-top:0.4rem;
+  font-size:0.85rem;
+}
+
+.kpi-bar{
+  display:flex;
+  flex-wrap:wrap;
+  gap:0.4rem;
+  margin:0.4rem 0 0.2rem;
+}
+.kpi-pill{
+  flex:1 1 100px;
+  background:#eff6ff;
+  border-radius:999px;
+  padding:0.25rem 0.6rem;
+  font-size:0.8rem;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.kpi-label{
+  color:#374151;
+}
+.kpi-value{
+  font-weight:600;
+  color:#111827;
+}
+
+.param-grid{
+  display:flex;
+  flex-wrap:wrap;
+  gap:0.6rem;
+  margin-top:0.3rem;
+}
+.param-field{
+  flex:1 1 140px;
+  display:flex;
+  flex-direction:column;
+  font-size:0.8rem;
+}
+.param-field label{
+  margin-bottom:0.15rem;
+  color:#374151;
+}
+.param-field input{
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:0.3rem 0.4rem;
+  font-size:0.85rem;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:0.85rem;
+}
+th,td{
+  border-bottom:1px solid var(--border);
+  padding:0.45rem;
+  text-align:left;
+}
+th{
+  background:#f1f5f9;
+  font-weight:600;
+}
+
+.dot{
+  display:inline-block;
+  width:0.6rem;
+  height:0.6rem;
+  border-radius:999px;
+  margin-right:0.35rem;
+  vertical-align:middle;
+}
+.dot-haute{background:#b91c1c;}
+.dot-moyenne{background:#92400e;}
+.dot-basse{background:#166534;}
+
+.chevron{
+  font-size:1rem;
+  transition:transform 0.15s ease-out;
+}
+
+.exc-alert{
+  color:#b91c1c;
+  font-weight:600;
+}
+
+footer{
+  text-align:center;
+  font-size:0.75rem;
+  color:#666;
+  margin:2rem 0 1rem;
+}
+</style>
+</head>
+<body>
+<nav class="wms-nav">
+  <div class="wms-nav-title">Complément WMS</div>
+  <div class="wms-nav-links">
+    <a href="../../index.html">Accueil</a>
+  </div>
+</nav>
+
+<div class="wms-links">
+  <span class="wms-links-label">Liens rapides :</span>
+  <a href="../../docs/regles.html">Règles opérationnelles</a>
+  <a href="../../docs/bins.html">Bins & Capacités</a>
+  <a href="../../docs/taches.html">Tâches terrain</a>
+  <a href="../../docs/historique.html">Historique & décisions</a>
+</div>
+
+
+<header>🧱 Consolidation – Ultra Focus V3</header>
+
+<main>
+
+<div class="card collapsed" id="card-import">
+  <div class="card-header" onclick="toggleCard('card-import')">
+    <div>
+      <h2 class="card-title">📥 Import inventaire par bin (CSV)</h2>
+      <div class="card-sub">Rapport Indago – Inventory by Bin (locationname, userbinid, displayline, qtyoh…)</div>
+    </div>
+    <div class="chevron">▾</div>
+  </div>
+  <div class="card-body">
+    <input type="file" id="fileInv" accept=".csv">
+    <div id="importStatus" class="muted" style="margin-top:0.3rem;">Aucun fichier importé.</div>
+  </div>
+</div>
+
+<div class="card collapsed" id="card-params">
+  <div class="card-header" onclick="toggleCard('card-params')">
+    <div>
+      <h2 class="card-title">⚙️ Paramètres de consolidation</h2>
+      <div class="card-sub">Ajuste la sensibilité de la consolidation. Les réglages sont mémorisés sur cet appareil.</div>
+    </div>
+    <div class="chevron">▾</div>
+  </div>
+  <div class="card-body">
+    <div class="param-grid">
+      <div class="param-field">
+        <label for="minQty">Qty minimale par mouvement</label>
+        <input type="number" id="minQty" min="1" step="1" value="1">
+      </div>
+      <div class="param-field">
+        <label for="topN">Nombre de mouvements affichés (Top N)</label>
+        <input type="number" id="topN" min="1" step="1" value="5">
+      </div>
+      <div class="param-field">
+        <label for="binCap">Capacité max par bin (qty totale)</label>
+        <input type="number" id="binCap" min="0" step="1" value="0">
+      </div>
+      <div class="param-field">
+        <label for="binCapRules">Capacité par préfixe de bin (optionnel)</label>
+        <input type="text" id="binCapRules" placeholder="Ex : L2=500;L3=300;BE=120">
+      </div>
+    </div>
+    <div class="muted" style="margin-top:0.3rem;">
+      0 = aucune limite de capacité globale. Les capacités sont appliquées sur la qty totale par bin après consolidation.
+      Les règles par préfixe (ex. L2=500;L3=300) remplacent la capacité globale pour les bins concernés.
+    </div>
+  </div>
+</div>
+
+<div class="card collapsed" id="card-diag">
+  <div class="card-header" onclick="toggleCard('card-diag')">
+    <div>
+      <h2 class="card-title">📊 Diagnostic consolidation</h2>
+      <div class="card-sub">Vue rapide de la situation avant de lancer tes déplacements.</div>
+    </div>
+    <div class="chevron">▾</div>
+  </div>
+  <div class="card-body">
+    <div class="kpi-bar">
+      <div class="kpi-pill">
+        <span class="kpi-label">Items multi-bin</span>
+        <span class="kpi-value" id="kpiMulti">0</span>
+      </div>
+      <div class="kpi-pill">
+        <span class="kpi-label">Tâches générées</span>
+        <span class="kpi-value" id="kpiTasks">0</span>
+      </div>
+      <div class="kpi-pill">
+        <span class="kpi-label">Bins touchés</span>
+        <span class="kpi-value" id="kpiBins">0</span>
+      </div>
+    </div>
+    <div id="diag" class="muted" style="margin-top:0.4rem;">Aucune donnée importée.</div>
+  </div>
+</div>
+
+<div class="card collapsed" id="card-exc">
+  <div class="card-header" onclick="toggleCard('card-exc')">
+    <div>
+      <h2 class="card-title">🚧 Exceptions</h2>
+      <div class="card-sub">Capacité dépassée ou données invalides à vérifier avant d’envoyer quelqu’un en déplacement.</div>
+    </div>
+    <div class="chevron">▾</div>
+  </div>
+  <div class="card-body">
+    <div id="excSummary" class="muted">Aucune exception détectée.</div>
+    <table style="margin-top:0.4rem;">
+      <thead>
+        <tr>
+          <th>Bin</th>
+          <th>Qty après</th>
+          <th>Capacité</th>
+          <th>Écart</th>
+        </tr>
+      </thead>
+      <tbody id="excBody">
+        <tr><td colspan="4" class="muted">Aucune exception de capacité.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card collapsed" id="card-terrain">
+  <div class="card-header" onclick="toggleCard('card-terrain')">
+    <div>
+      <h2 class="card-title">🏭 Vue terrain – par bin cible</h2>
+      <div class="card-sub">Regroupe les déplacements par bin cible pour une exécution plus fluide sur le plancher.</div>
+    </div>
+    <div class="chevron">▾</div>
+  </div>
+  <div class="card-body">
+    <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:0.4rem;">
+      <button onclick="exportWorkplanPDF()">Plan de travail PDF</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Bin cible</th>
+          <th>Qty totale reçue</th>
+          <th># mouvements</th>
+          <th>Bins source</th>
+        </tr>
+      </thead>
+      <tbody id="terrainBody">
+        <tr><td colspan="4" class="muted">Aucune donnée terrain. Importe un inventaire et génère des tâches.</td></tr>
+      </tbody>
+    </table>
+    <div id="terrainInfo" class="muted" style="margin-top:0.3rem;"></div>
+  </div>
+</div>
+
+<div class="card collapsed" id="card-tasks">
+  <div class="card-header" onclick="toggleCard('card-tasks')">
+    <div>
+      <h2 class="card-title">📋 Tâches de consolidation</h2>
+      <div class="card-sub">Top N mouvements recommandés – bin principal = bin avec la plus grande quantité.</div>
+    </div>
+    <div class="chevron">▾</div>
+  </div>
+  <div class="card-body">
+    <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:0.4rem;">
+      <button onclick="exportCSV()">Export CSV</button>
+      <button class="secondary" onclick="exportPDF()">Export PDF</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Bin source</th>
+          <th>Bin cible</th>
+          <th>Qty</th>
+        </tr>
+      </thead>
+      <tbody id="taskBody">
+        <tr><td colspan="4" class="muted">Aucune tâche générée.</td></tr>
+      </tbody>
+    </table>
+    <div id="taskInfo" class="muted" style="margin-top:0.3rem;"></div>
+  </div>
+</div>
+
+</main>
+
+<footer>
+  © 2026 – Complément WMS – Version v1.0 · Phase 4
+</footer>
+
+<script>
+let inventory=[];
+let tasksAll=[];
+let itemSummary={}; // item -> {totalQty, mainBin}
+let params={minQty:1, topN:5, binCap:0, binCapRules:[], binCapRulesText:''};
+let dataExceptions=0;
+let capacityExceptions=[];
+let terrainGroups=[];
+
+function toggleCard(id){
+  const card=document.getElementById(id);
+  if(!card) return;
+  card.classList.toggle('collapsed');
+}
+
+
+function parseBinCapRules(text){
+  const rules=[];
+  if(!text) return rules;
+  const parts=text.split(/[;\n]+/);
+  parts.forEach(part=>{
+    const s=part.trim();
+    if(!s) return;
+    const eqIndex=s.indexOf('=');
+    if(eqIndex===-1) return;
+    const prefix=s.slice(0,eqIndex).trim();
+    const numStr=s.slice(eqIndex+1).trim();
+    const cap=parseInt(numStr,10);
+    if(!prefix || isNaN(cap) || cap<=0) return;
+    rules.push({prefix, cap});
+  });
+  return rules;
+}
+
+function loadParams(){
+  try{
+    const raw=localStorage.getItem('conso_params_v3');
+    if(raw){
+      const p=JSON.parse(raw);
+      if(typeof p.minQty==='number') params.minQty=p.minQty;
+      if(typeof p.topN==='number') params.topN=p.topN;
+      if(typeof p.binCap==='number') params.binCap=p.binCap;
+      if(typeof p.binCapRulesText==='string') params.binCapRulesText=p.binCapRulesText;
+    }
+  }catch(e){}
+  document.getElementById('minQty').value=params.minQty;
+  params.binCapRules=parseBinCapRules(params.binCapRulesText||'');
+  document.getElementById('topN').value=params.topN;
+  document.getElementById('binCap').value=params.binCap;
+  const rulesInput=document.getElementById('binCapRules'); if(rulesInput){rulesInput.value=params.binCapRulesText||'';}
+}
+
+function saveParams(){
+  try{
+    localStorage.setItem('conso_params_v3',JSON.stringify(params));
+  }catch(e){}
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  loadParams();
+});
+
+document.getElementById('fileInv').addEventListener('change',e=>{
+  const file=e.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    parseCSV(ev.target.result);
+    runConsolidation();
+  };
+  reader.readAsText(file,'ISO-8859-1');
+});
+
+document.getElementById('minQty').addEventListener('change',()=>{
+  const v=parseInt(document.getElementById('minQty').value,10);
+  params.minQty=isNaN(v)||v<1?1:v;
+  document.getElementById('minQty').value=params.minQty;
+  params.binCapRules=parseBinCapRules(params.binCapRulesText||'');
+  saveParams();
+  runConsolidation();
+});
+
+document.getElementById('topN').addEventListener('change',()=>{
+  const v=parseInt(document.getElementById('topN').value,10);
+  params.topN=isNaN(v)||v<1?5:v;
+  document.getElementById('topN').value=params.topN;
+  saveParams();
+  runConsolidation();
+});
+
+document.getElementById('binCap').addEventListener('change',()=>{
+  const v=parseInt(document.getElementById('binCap').value,10);
+  params.binCap=isNaN(v)||v<0?0:v;
+  document.getElementById('binCap').value=params.binCap;
+  saveParams();
+  runConsolidation();
+});
+
+const binCapRulesInput=document.getElementById('binCapRules');
+if(binCapRulesInput){
+  binCapRulesInput.addEventListener('change',()=>{
+    params.binCapRulesText=binCapRulesInput.value||'';
+    params.binCapRules=parseBinCapRules(params.binCapRulesText);
+    saveParams();
+    runConsolidation();
+  });
+}
+
+function parseCSV(text){
+  const lines=text.split(/\r?\n/).filter(l=>l.trim());
+  if(!lines.length){
+    document.getElementById('importStatus').textContent='Fichier vide ou illisible.';
+    inventory=[];
+    runConsolidation();
+    return;
+  }
+  const headers=lines[0].split(',').map(h=>h.trim().toLowerCase());
+  inventory=[];
+  for(let i=1;i<lines.length;i++){
+    const p=lines[i].split(',');
+    if(p.length!==headers.length) continue;
+    const row={};
+    headers.forEach((h,j)=>row[h]=p[j].trim());
+    inventory.push(row);
+  }
+  document.getElementById('importStatus').textContent=
+    inventory.length+' lignes importées.';
+}
+
+function runConsolidation(){
+  const groups={};
+  const binsSet=new Set();
+  itemSummary={};
+  dataExceptions=0;
+  capacityExceptions=[];
+  terrainGroups=[];
+
+  inventory.forEach(r=>{
+    const item=r.item||r.itemid||r.sku||r.displayline;
+    const bin=r.userbinid||r.bin||r.locationname||r.location;
+    const qtyRaw=(r.qtyoh||'0').toString().replace(',','.');
+    const qty=parseFloat(qtyRaw);
+    if(!item||!bin||!isFinite(qty)||qty<=0){
+      dataExceptions++;
+      return;
+    }
+    if(!groups[item]) groups[item]=[];
+    groups[item].push({bin,qty});
+    binsSet.add(bin);
+  });
+
+  tasksAll=[];
+  let multi=0;
+  const binTotalsAfter={};
+
+  Object.keys(groups).forEach(item=>{
+    const list=groups[item];
+    if(list.length<=1) return;
+    multi++;
+    list.sort((a,b)=>b.qty-a.qty);
+    const main=list[0];
+    const totalQty=list.reduce((s,x)=>s+x.qty,0);
+    itemSummary[item]={totalQty:totalQty, mainBin:main.bin};
+    binTotalsAfter[main.bin]=(binTotalsAfter[main.bin]||0)+totalQty;
+    list.slice(1).forEach(b=>{
+      tasksAll.push({
+        item,
+        from:b.bin,
+        to:main.bin,
+        qty:b.qty,
+        prio:list.length>=3?'Haute':'Moyenne'
+      });
+    });
+  });
+
+  // filtre qty mini
+  tasksAll=tasksAll.filter(t=>t.qty>=params.minQty);
+
+  // KPI
+  document.getElementById('kpiMulti').textContent=multi;
+  document.getElementById('kpiTasks').textContent=tasksAll.length;
+  document.getElementById('kpiBins').textContent=binsSet.size;
+
+  // diagnostic
+  const diag=document.getElementById('diag');
+  if(!inventory.length){
+    diag.textContent='Aucune donnée importée.';
+  }else if(multi===0){
+    diag.textContent='Aucun item multi-bin trouvé dans cet inventaire.';
+  }else{
+    diag.textContent=multi+' items multi-bin détectés – '+tasksAll.length+' mouvements suggérés (après filtres).';
+  }
+
+  // exceptions capacité (globale + par préfixe)
+  const excBody=document.getElementById('excBody');
+  const excSummary=document.getElementById('excSummary');
+  excBody.innerHTML='';
+  const getBinCap = (bin)=>{
+    let capGlobal=params.binCap||0;
+    let cap=capGlobal;
+    if(params.binCapRules && params.binCapRules.length){
+      params.binCapRules.forEach(r=>{
+        if(bin.startsWith(r.prefix)){
+          cap=r.cap;
+        }
+      });
+    }
+    return cap;
+  };
+  Object.keys(binTotalsAfter).forEach(bin=>{
+    const qty=binTotalsAfter[bin];
+    const capBin=getBinCap(bin);
+    if(capBin>0 && qty>capBin){
+      capacityExceptions.push({
+        bin,
+        qtyAfter:qty,
+        cap:capBin,
+        diff:qty-capBin
+      });
+    }
+  });
+
+  if(!capacityExceptions.length){
+    excBody.innerHTML='<tr><td colspan="4" class="muted">Aucune exception de capacité.</td></tr>';
+  }else{
+    capacityExceptions.sort((a,b)=>b.diff-a.diff);
+    capacityExceptions.forEach(e=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML='<td>'+e.bin+'</td>'+
+                   '<td>'+e.qtyAfter+'</td>'+
+                   '<td>'+e.cap+'</td>'+
+                   '<td class="exc-alert">+'+e.diff+'</td>';
+      excBody.appendChild(tr);
+    });
+  }
+
+  let txt='Exceptions de capacité : '+capacityExceptions.length+'. ';
+  if(dataExceptions>0){
+    txt+='Lignes ignorées pour données invalides : '+dataExceptions+'.';
+  }else{
+    txt+='Aucune ligne ignorée pour données invalides.';
+  }
+  excSummary.textContent=txt;
+
+  // vue terrain (basée sur le même Top N que la liste de tâches)
+  const terrainMap={};
+  terrainGroups=[];
+  // on utilisera plus bas le tableau 'toShow' pour calculer la vue terrain
+
+// tâches (Top N)
+  const body=document.getElementById('taskBody');
+  body.innerHTML='';
+  const info=document.getElementById('taskInfo');
+  info.textContent='';
+
+  if(!tasksAll.length){
+    body.innerHTML='<tr><td colspan="4" class="muted">Aucune tâche selon les paramètres actuels.</td></tr>';
+    return;
+  }
+
+  const topN=params.topN||5;
+  const toShow=tasksAll.slice(0,topN);
+  // construit la vue terrain à partir du même Top N
+  const terrainMapDisplay={};
+  toShow.forEach(t=>{
+    if(!terrainMapDisplay[t.to]){
+      terrainMapDisplay[t.to]={bin:t.to,totalQty:0,count:0,sources:[]};
+    }
+    const g=terrainMapDisplay[t.to];
+    g.totalQty+=t.qty;
+    g.count+=1;
+    g.sources.push(t.from+' ('+t.qty+')');
+  });
+  terrainGroups=Object.values(terrainMapDisplay).sort((a,b)=>b.totalQty-a.totalQty);
+
+  const terrainBody=document.getElementById('terrainBody');
+  const terrainInfo=document.getElementById('terrainInfo');
+  terrainBody.innerHTML='';
+  terrainInfo.textContent='';
+  if(!terrainGroups.length){
+    terrainBody.innerHTML='<tr><td colspan="4" class="muted">Aucune donnée terrain (aucune tâche après filtres).</td></tr>';
+  }else{
+    const maxRows=20;
+    terrainGroups.slice(0,maxRows).forEach(g=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML='<td>'+g.bin+'</td>'+
+                   '<td>'+g.totalQty+'</td>'+
+                   '<td>'+g.count+'</td>'+
+                   '<td>'+g.sources.join(', ')+'</td>';
+      terrainBody.appendChild(tr);
+    });
+    if(terrainGroups.length>maxRows){
+      terrainInfo.textContent='Affichage des '+maxRows+' premiers bins cible sur '+terrainGroups.length+'.';
+    }else{
+      terrainInfo.textContent='Tous les bins cible avec mouvements sont affichés.';
+    }
+  }
+
+
+  toShow.forEach(t=>{
+    const tr=document.createElement('tr');
+    const infoItem=itemSummary[t.item];
+    const tooltip=infoItem
+      ? ('Total: '+infoItem.totalQty+' unités – Bin principal: '+infoItem.mainBin)
+      : '';
+    const prioClass=t.prio==='Haute'?'dot-haute':(t.prio==='Moyenne'?'dot-moyenne':'dot-basse');
+
+    const tdItem=document.createElement('td');
+    tdItem.title=tooltip;
+    tdItem.innerHTML='<span class="dot '+prioClass+'"></span>'+t.item;
+    tr.appendChild(tdItem);
+
+    const tdFrom=document.createElement('td');
+    tdFrom.textContent=t.from;
+    tr.appendChild(tdFrom);
+
+    const tdTo=document.createElement('td');
+    tdTo.textContent=t.to;
+    tr.appendChild(tdTo);
+
+    const tdQty=document.createElement('td');
+    tdQty.textContent=t.qty;
+    tr.appendChild(tdQty);
+
+    body.appendChild(tr);
+  });
+
+  if(tasksAll.length>topN){
+    info.textContent='Affichage des '+topN+' premiers mouvements sur '+tasksAll.length+'. Utilise Export CSV/PDF pour voir la liste complète.';
+  }
+}
+
+function exportCSV(){
+  if(!tasksAll.length){
+    alert('Aucune tâche à exporter.');
+    return;
+  }
+  let csv='Item,Bin source,Bin cible,Qty\n';
+  tasksAll.forEach(t=>{
+    csv+=[t.item,t.from,t.to,t.qty].join(',')+'\n';
+  });
+  download(csv,'taches_consolidation.csv','text/csv');
+}
+
+function exportPDF(){
+  if(!tasksAll.length){
+    alert('Aucune tâche à imprimer.');
+    return;
+  }
+  let html='<h3>Tâches de consolidation</h3>';
+  html+='<p><strong>Items multi-bin :</strong> '+document.getElementById('kpiMulti').textContent+
+        ' &nbsp; | &nbsp; <strong>Tâches générées :</strong> '+document.getElementById('kpiTasks').textContent+
+        ' &nbsp; | &nbsp; <strong>Bins touchés :</strong> '+document.getElementById('kpiBins').textContent+'</p>';
+  html+='<p><em>Liste complète des mouvements après application des paramètres (qty minimale, capacité, etc.).</em></p>';
+  html+='<table border="1" cellspacing="0" cellpadding="4">';
+  html+='<tr><th>Item</th><th>Bin source</th><th>Bin cible</th><th>Qty</th></tr>';
+  tasksAll.forEach(t=>{
+    html+='<tr><td>'+t.item+'</td><td>'+t.from+'</td><td>'+t.to+'</td><td>'+t.qty+'</td></tr>';
+  });
+  html+='</table>';
+  const w=window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
+  w.print();
+}
+
+
+function exportWorkplanPDF(){
+  if(!tasksAll.length){
+    alert('Aucune tâche à imprimer.');
+    return;
+  }
+  // Regroupe toutes les tâches (après filtres) par bin cible
+  const binMap={};
+  tasksAll.forEach(t=>{
+    if(!binMap[t.to]){
+      binMap[t.to]={bin:t.to,totalQty:0,moves:[]};
+    }
+    const g=binMap[t.to];
+    g.totalQty+=t.qty;
+    g.moves.push(t);
+  });
+  const groups=Object.values(binMap).sort((a,b)=>b.totalQty-a.totalQty);
+
+  let htmlOut='<h3>Plan de travail – Consolidation par bin cible</h3>';
+  htmlOut+='<p><strong>Total bins cible avec mouvements :</strong> '+groups.length+'</p>';
+  groups.forEach(g=>{
+    htmlOut+='<h4>Bin cible : '+g.bin+' (Total: '+g.totalQty+' unités, '+g.moves.length+' mouvements)</h4>';
+    htmlOut+='<table border="1" cellspacing="0" cellpadding="4">';
+    htmlOut+='<tr><th>Item</th><th>Bin source</th><th>Qty</th></tr>';
+    g.moves.forEach(m=>{
+      htmlOut+='<tr><td>'+m.item+'</td><td>'+m.from+'</td><td>'+m.qty+'</td></tr>';
+    });
+    htmlOut+='</table>';
+  });
+
+  const w=window.open('','_blank');
+  w.document.write(htmlOut);
+  w.document.close();
+  w.print();
+}
+
+function download(data,filename,type){
+  const blob=new Blob([data],{type});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+
+</body>
+</html>

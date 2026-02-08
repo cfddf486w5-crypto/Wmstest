@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <link rel="stylesheet" href="../../assets/css/wms.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Complément WMS – Expéditions</title>
+
+<style>
+:root{
+  --primary:#0072C6;
+  --bg:#F5F6F8;
+  --border:#E1E4E8;
+  --text:#222;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+header{
+  background:var(--primary);
+  color:#fff;
+  padding:0.8rem 1rem;
+  text-align:center;
+  font-weight:600;
+  font-size:1.1rem;
+}
+main{ padding:1rem; max-width:900px; margin:0 auto; }
+
+.card{
+  position:relative;
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:1rem;
+  margin-bottom:1rem;
+  box-shadow:0 1px 3px rgba(0,0,0,0.08);
+}
+.card h2{ margin:0 0 0.8rem 0; font-size:1rem; }
+
+/* actions en haut droite */
+.card-actions{
+  position:absolute;
+  top:0.6rem;
+  right:0.6rem;
+  display:flex;
+  gap:0.4rem;
+}
+
+/* boutons calendrier + usager */
+.calendar-btn,
+.add-user-btn{
+  width:42px;
+  height:42px;
+  border-radius:10px;
+  border:none;
+  background:#e5e7eb;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+}
+.calendar-btn:hover,
+.add-user-btn:hover{
+  background:#d1d5db;
+}
+.cal-mini{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  line-height:1.05;
+}
+.cal-month{
+  font-size:0.6rem;
+  font-weight:800;
+  text-transform:uppercase;
+  color:#7f1d1d;
+}
+.cal-day{
+  font-size:0.95rem;
+  font-weight:800;
+  color:#7f1d1d;
+}
+.add-user-btn span{ font-size:20px; }
+
+/* barre calendrier */
+.calendar-bar{
+  display:none;
+  margin-bottom:0.6rem;
+  padding:0.4rem 0.6rem;
+  border-radius:8px;
+  background:#f3f4f6;
+}
+.calendar-bar label{
+  font-size:0.8rem;
+  margin-bottom:0.2rem;
+  color:#4b5563;
+}
+.calendar-bar input[type="date"]{
+  width:100%;
+  padding:0.45rem 0.55rem;
+  border-radius:6px;
+  border:1px solid #d1d5db;
+  font-size:0.9rem;
+}
+
+/* login */
+.login-bar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:0.5rem;
+  margin-bottom:0.5rem;
+  font-size:0.8rem;
+}
+.login-bar-status{
+  color:#374151;
+}
+.login-bar-status strong{ color:#111827; }
+.login-bar button{
+  padding:0.3rem 0.55rem;
+  font-size:0.8rem;
+}
+
+/* formulaires palette */
+label{ display:block; font-size:0.8rem; margin-bottom:0.2rem; color:#555; }
+input, select{
+  width:100%;
+  padding:0.55rem;
+  margin-bottom:0.6rem;
+  border-radius:6px;
+  border:1px solid #ccc;
+  font-size:0.9rem;
+}
+input[readonly]{ background:#f3f4f6; font-weight:600; }
+
+button{
+  border:none;
+  border-radius:8px;
+  padding:0.6rem 0.9rem;
+  background:var(--primary);
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+  font-size:0.9rem;
+}
+button.secondary{ background:#6b7280; }
+button.ghost{ background:#e5e7eb; color:#374151; }
+
+/* ID + modes */
+.row-id{
+  display:flex;
+  gap:0.45rem;
+  align-items:center;
+  margin-bottom:0.6rem;
+}
+.row-id input{
+  flex:1 1 auto;
+  margin-bottom:0;
+}
+.mode-btn{
+  flex:0 0 42px;
+  height:42px;
+  border-radius:10px;
+  border:none;
+  background:#e5e7eb;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  font-size:20px;
+  cursor:pointer;
+}
+.mode-btn.active{
+  background:#dbeafe;
+  box-shadow:0 0 0 1px rgba(37,99,235,0.5);
+}
+
+/* grilles */
+.row-two{
+  display:flex;
+  gap:0.75rem;
+  flex-wrap:wrap;
+}
+.row-two > div{ flex:1 1 0; }
+
+.temp-user{ display:none; margin-top:0.3rem; }
+
+/* boutons palette */
+.btn-row{
+  display:flex;
+  gap:0.75rem;
+  margin-top:0.2rem;
+  margin-bottom:0.4rem;
+}
+.btn-row button{ flex:1 1 0; }
+
+/* liste commandes compacte */
+#currentCommandes{
+  list-style:none;
+  padding-left:0;
+  margin:0;
+  max-height:140px;
+  overflow:auto;
+}
+#currentCommandes.has-items{
+  margin-top:0.4rem;
+  border-radius:6px;
+  border:1px dashed #e5e7eb;
+  padding:0.3rem 0.2rem;
+}
+#currentCommandes li{
+  padding:0.18rem 0.55rem;
+  border-bottom:1px dashed #e5e7eb;
+  font-size:0.85rem;
+}
+#currentCommandes li:last-child{ border-bottom:none; }
+
+.small{ font-size:0.8rem; color:#6b7280; }
+
+/* transport rectangles */
+.transport-summary{ margin-top:0.2rem; }
+.transport-tiles{
+  display:flex;
+  flex-wrap:wrap;
+  gap:0.5rem;
+}
+.transport-tile-wrapper{
+  flex:1 1 calc(50% - 0.5rem);
+  max-width:calc(50% - 0.5rem);
+  min-width:130px;
+}
+@media(min-width:700px){
+  .transport-tile-wrapper{
+    flex:1 1 calc(25% - 0.5rem);
+    max-width:calc(25% - 0.5rem);
+  }
+}
+.transport-btn{
+  width:100%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:0.55rem 0.7rem;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:#f9fafb;
+  min-height:42px;
+  color:var(--text);
+}
+.transport-btn .tile-left{ color:var(--text); }
+.transport-btn.active{
+  border-color:var(--primary);
+  box-shadow:0 0 0 1px rgba(0,114,198,0.22);
+}
+.tile-left{
+  font-size:0.8rem;
+  font-weight:600;
+  white-space:nowrap;
+}
+.count-pill{
+  min-width:1.6rem;
+  padding:0.12rem 0.45rem;
+  border-radius:999px;
+  background:#e5e7eb;
+  font-size:0.75rem;
+  font-weight:700;
+  text-align:center;
+}
+
+/* manifeste détaillé */
+#manifestCard h2{ margin-bottom:0.25rem; }
+#manifestLabel{ margin-bottom:0.4rem; }
+
+.manifest-item{
+  border-bottom:1px solid #e5e7eb;
+  padding:0.35rem 0;
+  font-size:0.8rem;
+}
+.manifest-item:last-child{ border-bottom:none; }
+.manifest-main{ font-weight:500; }
+.manifest-sub{ color:#6b7280; font-size:0.75rem; }
+
+@media print{
+  #cardPalette{ display:none; }
+}
+
+/* popup scan caméra */
+.scan-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.35);
+  display:none;
+  align-items:flex-end;
+  justify-content:center;
+  z-index:9999;
+}
+.scan-overlay.visible{
+  display:flex;
+}
+.scan-panel{
+  background:#000;
+  width:100%;
+  max-width:720px;
+  height:50vh;
+  border-radius:18px 18px 0 0;
+  padding:0.5rem 0.75rem 0.75rem;
+  display:flex;
+  flex-direction:column;
+}
+.scan-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  color:#f9fafb;
+  margin-bottom:0.4rem;
+  font-size:0.9rem;
+}
+.scan-header button{
+  background:transparent;
+  border:none;
+  color:#e5e7eb;
+  font-size:1.2rem;
+}
+.scan-video{
+  flex:1;
+  border-radius:14px;
+  background:#111;
+  object-fit:cover;
+}
+.scan-help{
+  margin-top:0.35rem;
+  color:#d1d5db;
+  font-size:0.75rem;
+}
+</style>
+</head>
+
+<body>
+<nav class="wms-nav">
+  <div class="wms-nav-title">Complément WMS</div>
+  <div class="wms-nav-links">
+    <a href="../../index.html">Accueil</a>
+  </div>
+</nav>
+
+<div class="wms-links">
+  <span class="wms-links-label">Liens rapides :</span>
+  <a href="../../docs/historique.html">Historique & décisions</a>
+</div>
+
+<header>📦 Suivi des expéditions – Langelier</header>
+
+<main>
+
+<!-- Palette en cours -->
+<div class="card" id="cardPalette">
+  <h2>Palette en cours</h2>
+
+  <div class="card-actions">
+    <button class="calendar-btn" type="button" id="btnCalendar" onclick="toggleCalendarBar()">
+      <div class="cal-mini">
+        <span class="cal-month" id="miniMonth">MOIS</span>
+        <span class="cal-day" id="miniDay">--</span>
+      </div>
+    </button>
+    <button class="add-user-btn" type="button" id="btnTempUser" onclick="toggleTempUser()">
+      <span>👤+</span>
+    </button>
+  </div>
+
+  <div id="calendarBar" class="calendar-bar">
+    <label for="dateFilter">Date du rapport</label>
+    <input type="date" id="dateFilter">
+  </div>
+
+  <div class="login-bar">
+    <div class="login-bar-status" id="loginStatus">Aucun usager connecté</div>
+    <div>
+      <button type="button" class="ghost" id="btnLogin" onclick="loginUser()">Connexion</button>
+      <button type="button" class="ghost" id="btnLogout" onclick="logoutUser()" style="display:none;">Déconnexion</button>
+    </div>
+  </div>
+
+  <label>ID palette (auto)</label>
+  <div class="row-id">
+    <input id="paletteId" readonly>
+    <button class="mode-btn active" type="button" id="modeScanBtn" title="Mode scan">✳️</button>
+    <button class="mode-btn" type="button" id="modeManagerBtn" title="Mode manager">Ⓜ️</button>
+  </div>
+
+  <div class="row-two">
+    <div>
+      <label>Utilisateur</label>
+      <select id="userSelect">
+        <option value="">— Sélectionner —</option>
+        <option>Steven</option>
+        <option>Dan</option>
+        <option>D’amour</option>
+        <option>Marcel</option>
+        <option>Joe</option>
+      </select>
+
+      <div class="temp-user" id="tempUserBox">
+        <input id="tempUser" placeholder="Nom de l’usager temporaire">
+        <button class="ghost" type="button" onclick="setTempUser()">Ajouter</button>
+      </div>
+    </div>
+
+    <div>
+      <label>Transporteur</label>
+      <select id="transporteur">
+        <option value="">— Sélectionner —</option>
+        <option>Fastfrate</option>
+        <option>Loomis</option>
+        <option>Midcou</option>
+        <option>Midland transport</option>
+        <option>Morneau</option>
+        <option>Same Day</option>
+        <option>Virage</option>
+      </select>
+    </div>
+  </div>
+
+  <label>Ajouter une commande sur la palette</label>
+  <input id="commandeInput" placeholder="No commande (ex: 02AX1234545)">
+
+  <div class="btn-row">
+    <button class="secondary" type="button" onclick="archivePalette()">Archiver la palette</button>
+    <button type="button" onclick="addCommande()">+ Ajouter commande</button>
+    <button type="button" onclick="openScanOverlay()">📷 Scanner</button>
+  </div>
+
+  <ul id="currentCommandes"></ul>
+</div>
+
+<!-- Palettes par transporteur + bouton export -->
+<div class="card" id="cardTransports">
+  <div class="transport-summary">
+    <div class="transport-tiles" id="summaryTransports"></div>
+  </div>
+</div>
+
+<!-- Manifeste détaillé pour un transporteur -->
+<div class="card" id="manifestCard" style="display:none;">
+  <h2>Manifeste des expéditions</h2>
+  <div id="manifestLabel" class="small"></div>
+  <div id="manifestList"></div>
+</div>
+
+</main>
+
+<script>
+const STORAGE_KEY = "wms_shipments_lan";
+const COUNTER_KEY = "wms_shipments_lan_counter";
+const ID_PREFIX = "LAN2026FE";
+const ALL_TRANSPORTS = ["Fastfrate","Loomis","Midcou","Midland transport","Morneau","Same Day","Virage"];
+const MANAGER_PIN = "0000";
+const EMPLOYEE_PINS = {
+  "Steven":"1111",
+  "Dan":"2222",
+  "D’amour":"3333",
+  "Marcel":"4444",
+  "Joe":"5555"
+};
+
+let currentCommandes = [];
+let currentDay = null; // YYYY-MM-DD
+let currentTransportForManifest = null;
+let scanMode = true; // true = palette seule, false = manager
+let loggedUser = null;
+
+function loadShipments(){ return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
+function saveShipments(d){ localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
+function loadCounter(){ return parseInt(localStorage.getItem(COUNTER_KEY) || "1",10); }
+function saveCounter(v){ localStorage.setItem(COUNTER_KEY,String(v)); }
+function formatId(n){ return ID_PREFIX + String(n).padStart(4,"0"); }
+
+function refreshPaletteField(){ document.getElementById('paletteId').value = formatId(loadCounter()); }
+
+function toggleTempUser(){
+  const box = document.getElementById('tempUserBox');
+  box.style.display = (box.style.display === 'none' || !box.style.display) ? 'block' : 'none';
+}
+
+function setTempUser(){
+  const input = document.getElementById('tempUser');
+  const v = input.value.trim();
+  if(!v) return;
+  const sel = document.getElementById('userSelect');
+  const opt = document.createElement('option');
+  opt.textContent = v;
+  opt.value = v;
+  opt.selected = true;
+  sel.appendChild(opt);
+  input.value = "";
+  document.getElementById('tempUserBox').style.display = 'none';
+}
+
+function toggleCalendarBar(){
+  const bar = document.getElementById('calendarBar');
+  const input = document.getElementById('dateFilter');
+  const show = (bar.style.display === 'none' || !bar.style.display);
+  bar.style.display = show ? 'block' : 'none';
+  if(show && input){
+    input.focus();
+  }
+}
+
+/* LOGIN */
+function updateLoginUI(){
+  const status = document.getElementById('loginStatus');
+  const btnLogin = document.getElementById('btnLogin');
+  const btnLogout = document.getElementById('btnLogout');
+  const sel = document.getElementById('userSelect');
+  if(loggedUser){
+    status.innerHTML = "Usager connecté : <strong>"+loggedUser+"</strong>";
+    if(sel){ sel.value = loggedUser; }
+    if(btnLogin) btnLogin.style.display = "none";
+    if(btnLogout) btnLogout.style.display = "inline-block";
+  }else{
+    status.textContent = "Aucun usager connecté";
+    if(sel){ sel.value = ""; }
+    if(btnLogin) btnLogin.style.display = "inline-block";
+    if(btnLogout) btnLogout.style.display = "none";
+  }
+}
+
+function loginUser(){
+  const code = prompt("Code employé (3 ou 4 chiffres) :");
+  if(!code) return;
+  const entry = Object.entries(EMPLOYEE_PINS).find(([name,pin]) => pin === code.trim());
+  if(!entry){
+    alert("Code invalide.");
+    return;
+  }
+  loggedUser = entry[0];
+  updateLoginUI();
+}
+
+function logoutUser(){
+  loggedUser = null;
+  updateLoginUI();
+}
+
+/* commandes */
+function addCommande(forcedValue){
+  const input = document.getElementById('commandeInput');
+  if(!input) return;
+  let v = (forcedValue != null ? forcedValue : input.value).trim();
+  if(!v) return;
+
+  // Normaliser le code pour détecter ARCHIVE PAL (avec ou sans espace / underscore / casse)
+  const norm = v.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if(norm === "ARCHIVEPAL"){
+    input.value = "";
+    archivePalette();
+    return;
+  }
+
+  const code = v.toUpperCase();
+  currentCommandes.push(code);
+  input.value = "";
+  renderCurrent();
+}
+
+function renderCurrent(){
+  const ul = document.getElementById('currentCommandes');
+  if(!ul) return;
+  ul.innerHTML = "";
+  if(!currentCommandes.length){
+    ul.classList.remove('has-items');
+    return;
+  }
+  ul.classList.add('has-items');
+  currentCommandes.forEach((c, index)=>{
+    const li = document.createElement('li');
+    li.style.display = 'flex';
+    li.style.alignItems = 'center';
+
+    const spanText = document.createElement('span');
+    spanText.textContent = c;
+    spanText.style.flex = '1 1 auto';
+
+    const btnDel = document.createElement('button');
+    btnDel.type = 'button';
+    btnDel.textContent = '🗑️';
+    btnDel.title = "Supprimer cette commande";
+    btnDel.style.border = 'none';
+    btnDel.style.background = 'transparent';
+    btnDel.style.cursor = 'pointer';
+    btnDel.style.marginLeft = '0.5rem';
+
+    btnDel.addEventListener('click', function(){
+      currentCommandes.splice(index, 1);
+      renderCurrent();
+    });
+
+    li.appendChild(spanText);
+    li.appendChild(btnDel);
+    ul.appendChild(li);
+  });
+}
+
+/* scan caméra (V3) */
+let scanStream = null;
+let scanRunning = false;
+let scanDetector = null;
+
+async function openScanOverlay(){
+  const overlay = document.getElementById('scanOverlay');
+  const video = document.getElementById('scanVideo');
+  if(!overlay || !video){
+    alert("Zone de scan non disponible dans l'interface.");
+    return;
+  }
+  overlay.classList.add('visible');
+
+  try{
+    const constraints = { video:{ facingMode:{ ideal:'environment' } } };
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    scanStream = stream;
+    video.srcObject = stream;
+    await video.play();
+    startScanLoop();
+  }catch(e){
+    console.error(e);
+    alert("Caméra non accessible. Vérifie les permissions.");
+    closeScanOverlay();
+  }
+}
+
+function closeScanOverlay(){
+  stopScanStream();
+  const overlay = document.getElementById('scanOverlay');
+  if(overlay){
+    overlay.classList.remove('visible');
+  }
+}
+
+function stopScanStream(){
+  scanRunning = false;
+  if(scanStream){
+    scanStream.getTracks().forEach(t=>t.stop());
+    scanStream = null;
+  }
+  const video = document.getElementById('scanVideo');
+  if(video){
+    video.srcObject = null;
+  }
+}
+
+async function startScanLoop(){
+  const video = document.getElementById('scanVideo');
+  if(!video){
+    return;
+  }
+
+  if('BarcodeDetector' in window){
+    try{
+      scanDetector = new BarcodeDetector({ formats:['code_128','qr_code'] });
+    }catch(e){
+      console.warn("BarcodeDetector non supporté :", e);
+      scanDetector = null;
+    }
+  }
+
+  if(!scanDetector){
+    console.warn("BarcodeDetector non disponible dans ce navigateur.");
+    return;
+  }
+
+  scanRunning = true;
+
+  const loop = async () => {
+    if(!scanRunning) return;
+    try{
+      const codes = await scanDetector.detect(video);
+      if(codes && codes.length){
+        const raw = (codes[0].rawValue || "").trim();
+        if(raw){
+          handleScanResult(raw);
+          return;
+        }
+      }
+    }catch(e){
+      console.error("Erreur scan :", e);
+    }
+    requestAnimationFrame(loop);
+  };
+
+  requestAnimationFrame(loop);
+}
+
+function handleScanResult(value){
+  closeScanOverlay();
+  const v = (value || "").trim();
+  if(!v) return;
+  const input = document.getElementById('commandeInput');
+  if(input){
+    input.value = v;
+  }
+  addCommande(v);
+}
+/* archive */
+function archivePalette(){
+  const userSelValue = document.getElementById('userSelect').value.trim();
+  const user = loggedUser || userSelValue;
+  const transporteur = document.getElementById('transporteur').value.trim();
+  if(!user){
+    alert("Aucun usager connecté / sélectionné.");
+    return;
+  }
+  if(!transporteur){
+    alert("Sélectionne un transporteur.");
+    return;
+  }
+  if(!currentCommandes.length){
+    alert("Ajoute au moins une commande avant d'archiver.");
+    return;
+  }
+
+  const data = loadShipments();
+  const counter = loadCounter();
+  const paletteId = formatId(counter);
+  const now = new Date();
+  const day = now.toISOString().slice(0,10);
+
+  data.unshift({
+    paletteId,
+    user,
+    transporteur,
+    date: now.toLocaleString(),
+    day,
+    commandes:[...currentCommandes]
+  });
+  saveShipments(data);
+
+  currentCommandes = [];
+  saveCounter(counter + 1);
+  refreshPaletteField();
+  renderCurrent();
+  renderArchives();
+  if(currentTransportForManifest){
+    showTransportManifest(currentTransportForManifest);
+  }
+  const cmdInput = document.getElementById('commandeInput');
+  if(cmdInput){ cmdInput.focus(); }
+}
+
+/* mini calendrier */
+function updateMiniCalendar(){
+  if(!currentDay) return;
+  const monthSpan = document.getElementById('miniMonth');
+  const daySpan = document.getElementById('miniDay');
+  const d = new Date(currentDay + "T00:00:00");
+  const months = ["JAN","FÉV","MAR","AVR","MAI","JUN","JUL","AOÛ","SEP","OCT","NOV","DÉC"];
+  const mShort = months[d.getMonth()] || "";
+  const dayNum = String(d.getDate()).padStart(2,"0");
+  if(monthSpan) monthSpan.textContent = mShort;
+  if(daySpan) daySpan.textContent = dayNum;
+}
+
+/* modes scan / manager */
+function applyMode(){
+  const cardTrans = document.getElementById('cardTransports');
+  const cardManifest = document.getElementById('manifestCard');
+  const scanBtn = document.getElementById('modeScanBtn');
+  const managerBtn = document.getElementById('modeManagerBtn');
+  const userSel = document.getElementById('userSelect');
+  const transSel = document.getElementById('transporteur');
+  const tempBox = document.getElementById('tempUserBox');
+  const btnTempUser = document.getElementById('btnTempUser');
+  const btnCalendar = document.getElementById('btnCalendar');
+  const calendarBar = document.getElementById('calendarBar');
+
+  if(scanMode){ // mode montage : palette + usager + transport + commandes, sans analyse
+    if(cardTrans) cardTrans.style.display = 'none';
+    if(cardManifest) cardManifest.style.display = 'none';
+
+    if(scanBtn) scanBtn.classList.add('active');
+    if(managerBtn) managerBtn.classList.remove('active');
+
+    // accès complet aux champs palette/usager/transport
+    if(userSel) userSel.disabled = false;
+    if(transSel) transSel.disabled = false;
+
+    // on masque uniquement les outils d'analyse / calendrier / usager temporaire
+    if(tempBox) tempBox.style.display = 'none';
+    if(btnTempUser) btnTempUser.style.display = 'none';
+    if(btnCalendar) btnCalendar.style.display = 'none';
+    if(calendarBar) calendarBar.style.display = 'none';
+  }else{ // mode complet (manager)
+    if(cardTrans) cardTrans.style.display = '';
+    if(cardManifest && currentDay) cardManifest.style.display = '';
+
+    if(scanBtn) scanBtn.classList.remove('active');
+    if(managerBtn) managerBtn.classList.add('active');
+
+    if(userSel) userSel.disabled = false;
+    if(transSel) transSel.disabled = false;
+    if(btnTempUser) btnTempUser.style.display = '';
+    if(btnCalendar) btnCalendar.style.display = '';
+  }
+}
+
+/* archives / transports */
+function renderArchives(){
+  const data = loadShipments().filter(s => s.day === currentDay);
+  const container = document.getElementById('summaryTransports');
+  container.innerHTML = "";
+
+  const per = {};
+  ALL_TRANSPORTS.forEach(t => { per[t] = []; });
+  data.forEach(s => {
+    const t = ALL_TRANSPORTS.includes(s.transporteur) ? s.transporteur : "Autre";
+    if(!per[t]) per[t] = [];
+    per[t].push(s);
+  });
+
+  ALL_TRANSPORTS.forEach(t => {
+    const wrap = document.createElement('div');
+    wrap.className = "transport-tile-wrapper";
+
+    const btn = document.createElement('button');
+    btn.type = "button";
+    btn.className = "transport-btn";
+    btn.dataset.transport = t;
+    const count = per[t].length;
+    btn.innerHTML = '<span class="tile-left">'+t+'</span><span class="count-pill">'+count+'</span>';
+    btn.addEventListener('click', () => {
+      showTransportManifest(t);
+      setActiveTile(t);
+    });
+
+    wrap.appendChild(btn);
+    container.appendChild(wrap);
+  });
+
+  // tuile Export PDF
+  const wrapExport = document.createElement('div');
+  wrapExport.className = "transport-tile-wrapper";
+  const btnExport = document.createElement('button');
+  btnExport.type = "button";
+  btnExport.className = "transport-btn";
+  btnExport.innerHTML = '<span class="tile-left" style="color:#0072C6;font-weight:700;">Export PDF</span><span class="count-pill">⤓</span>';
+  btnExport.addEventListener('click', exportManifest);
+  wrapExport.appendChild(btnExport);
+  container.appendChild(wrapExport);
+
+  let target = currentTransportForManifest;
+  if(!target){
+    const firstWithData = ALL_TRANSPORTS.find(t => per[t].length>0);
+    target = firstWithData || ALL_TRANSPORTS[0];
+  }
+  currentTransportForManifest = target;
+  setActiveTile(target);
+  showTransportManifest(target);
+  applyMode();
+}
+
+function setActiveTile(transport){
+  const buttons = document.querySelectorAll('.transport-btn');
+  buttons.forEach(b => {
+    const t = b.dataset.transport;
+    if(t && t === transport){
+      b.classList.add('active');
+    }else{
+      b.classList.remove('active');
+    }
+  });
+}
+
+function buildManifestList(listElem, rows){
+  listElem.innerHTML = "";
+  if(!rows.length){
+    listElem.innerHTML = '<div class="small">Aucune palette pour ce transporteur.</div>';
+    return;
+  }
+  rows.forEach(s => {
+    const div = document.createElement('div');
+    div.className = 'manifest-item';
+    const cmds = (s.commandes || []).join(', ');
+    div.innerHTML = `
+      <div class="manifest-main">${s.paletteId || ''} • ${s.user || ''} • ${s.date || ''}</div>
+      ${cmds ? `<div class="manifest-sub">${cmds}</div>` : ''}
+    `;
+    listElem.appendChild(div);
+  });
+}
+
+function showTransportManifest(transport){
+  currentTransportForManifest = transport;
+  const card = document.getElementById('manifestCard');
+  const label = document.getElementById('manifestLabel');
+  const list = document.getElementById('manifestList');
+  if(!currentDay){
+    card.style.display = 'none';
+    return;
+  }
+  const data = loadShipments().filter(s => s.day === currentDay && s.transporteur === transport);
+  if(scanMode){
+    card.style.display = 'none';
+  }else{
+    card.style.display = 'block';
+  }
+  label.textContent = "Date : " + currentDay + " – Transporteur : " + transport + " – " + data.length + " palette(s)";
+  buildManifestList(list, data);
+}
+
+/* export PDF */
+function exportManifest(){
+  const rows = loadShipments().filter(s => s.day === currentDay);
+  if(!rows.length){
+    alert("Aucune expédition pour cette date.");
+    return;
+  }
+  const header = ["Date/heure","ID palette","Transporteur","Utilisateur","Commandes"];
+  let table = "<table border='1' cellspacing='0' cellpadding='4' style='border-collapse:collapse;font-family:system-ui,Segoe UI,sans-serif;font-size:12px;'>";
+  table += "<thead><tr style='background:#e5e7eb;font-weight:bold;'>" + header.map(h => "<th>"+h+"</th>").join("") + "</tr></thead><tbody>";
+  rows.forEach(s => {
+    const line = [
+      s.date || "",
+      s.paletteId || "",
+      s.transporteur || "",
+      s.user || "",
+      (s.commandes || []).join(", ")
+    ];
+    table += "<tr>" + line.map(c => "<td>"+String(c).replace(/</g,"&lt;")+"</td>").join("") + "</tr>";
+  });
+  table += "</tbody></table>";
+
+  const w = window.open("");
+  if(!w){
+    alert("Impossible d’ouvrir la fenêtre d’export (popup bloqué?).");
+    return;
+  }
+  w.document.write("<html><head>
+  <link rel="stylesheet" href="../../assets/css/wms.css"><title>Manifeste "+currentDay+"</title></head><body>");
+  w.document.write("<h3>Manifeste des expéditions – "+currentDay+"</h3>");
+  w.document.write(table);
+  w.document.write("<footer>
+  © 2026 – Complément WMS – Version v1.0 · Phase 4
+</footer>
+</body></html>");
+  w.document.close();
+  w.focus();
+  // iPhone : Partager / Imprimer > Enregistrer en PDF
+  setTimeout(() => {
+    try { w.print(); } catch(e) {}
+  }, 300);
+}
+
+/* init */
+function init(){
+  refreshPaletteField();
+  renderCurrent();
+  updateLoginUI();
+
+  const dateInput = document.getElementById('dateFilter');
+  const today = new Date().toISOString().slice(0,10);
+  currentDay = today;
+  dateInput.value = today;
+
+  dateInput.addEventListener('change', () => {
+    if(dateInput.value){
+      currentDay = dateInput.value;
+      updateMiniCalendar();
+      renderArchives();
+      document.getElementById('calendarBar').style.display = 'none';
+    }
+  });
+
+  updateMiniCalendar();
+  renderArchives();
+
+  const scanBtn = document.getElementById('modeScanBtn');
+  const managerBtn = document.getElementById('modeManagerBtn');
+
+  if(scanBtn){
+    scanBtn.addEventListener('click', () => {
+      scanMode = true;
+      applyMode();
+    });
+  }
+  if(managerBtn){
+    managerBtn.addEventListener('click', () => {
+      scanMode = false;
+      applyMode();
+    });
+  }
+
+  document.getElementById('commandeInput').addEventListener('keyup', e=>{
+    if(e.key === 'Enter'){
+      addCommande();
+    }
+  });
+
+  // démarrage en mode scan
+  scanMode = true;
+  applyMode();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+
+<!-- Popup scan caméra (V3) -->
+<div id="scanOverlay" class="scan-overlay">
+  <div class="scan-panel">
+    <div class="scan-header">
+      <span>Scanner une commande (Code 128 / QR)</span>
+      <button type="button" onclick="closeScanOverlay()">✕</button>
+    </div>
+    <video id="scanVideo" class="scan-video" autoplay muted playsinline></video>
+    <div class="scan-help">
+      Pointe la caméra vers le code-barres ou le QR. Le numéro sera ajouté automatiquement à la palette.
+    </div>
+  </div>
+</div>
+<footer>
+  © 2026 – Complément WMS – Version v1.0 · Phase 4
+</footer>
+</body>
+</html>

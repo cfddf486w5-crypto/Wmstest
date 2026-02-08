@@ -1,0 +1,118 @@
+
+:root{
+  --primary:#0072C6;
+  --bg:#F5F6F8;
+  --card:#ffffff;
+  --border:#E1E4E8;
+  --text:#111827;
+  --muted:#6b7280;
+}
+
+/* Base */
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+/* Generic header + footer */
+header{
+  background:var(--primary);
+  color:#fff;
+}
+header h1{
+  margin:0;
+}
+header p{
+  margin:0.3rem 0 0;
+  font-size:0.85rem;
+  opacity:0.9;
+}
+footer{
+  text-align:center;
+  font-size:0.75rem;
+  color:var(--muted);
+}
+
+/* Cards & layout */
+.card{
+  background:var(--card);
+  border-radius:12px;
+  border:1px solid var(--border);
+  box-shadow:0 1px 4px rgba(0,0,0,0.06);
+}
+.tag{
+  display:inline-block;
+  font-size:0.7rem;
+  text-transform:uppercase;
+  letter-spacing:0.04em;
+  border-radius:999px;
+  padding:0.1rem 0.5rem;
+}
+
+/* Buttons */
+a.btn, button.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:0.4rem 0.85rem;
+  border-radius:999px;
+  background:var(--primary);
+  color:#fff;
+  font-size:0.82rem;
+  font-weight:600;
+  text-decoration:none;
+  border:none;
+  cursor:pointer;
+}
+
+/* Mini barre de navigation Complément */
+.wms-nav{
+  background:#0f172a;
+  color:#e5e7eb;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  font-size:0.8rem;
+  padding:0.35rem 0.7rem;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.wms-nav a{
+  color:#e5e7eb;
+  text-decoration:none;
+}
+.wms-nav a:hover{
+  text-decoration:underline;
+}
+.wms-nav-title{
+  font-weight:600;
+}
+.wms-nav-links{
+  display:flex;
+  gap:0.8rem;
+}
+
+
+/* Liens rapides entre modules */
+.wms-links{
+  background:rgba(15,23,42,0.03);
+  padding:0.35rem 0.75rem;
+  font-size:0.78rem;
+  display:flex;
+  flex-wrap:wrap;
+  gap:0.6rem;
+  align-items:center;
+}
+.wms-links-label{
+  font-weight:500;
+  color:var(--muted);
+}
+.wms-links a{
+  color:#2563eb;
+  text-decoration:none;
+}
+.wms-links a:hover{
+  text-decoration:underline;
+}

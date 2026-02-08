@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <link rel="stylesheet" href="../../assets/css/wms.css">
+<meta charset="UTF-8" />
+<title>Complément WMS – Inventaire</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+:root{
+  --blue:#1f4fd8;
+  --bg:#f4f6f8;
+  --card:#ffffff;
+  --muted:#6b7280;
+}
+*{box-sizing:border-box}
+body[data-mode="terrain"] .expert-only{display:none;}
+body[data-mode="expert"] .terrain-only{display:none;}
+body[data-mode="terrain"] .terrain-only{display:block;}
+body[data-mode="terrain"][data-view="tasks"] .card{display:none;}
+body[data-mode="terrain"][data-view="tasks"] .mode-switch-card{display:block;}
+body[data-mode="terrain"][data-view="tasks"] #tasksCard{display:block;}
+
+body[data-mode="terrain"] main{
+  max-width:100%;
+  padding:8px 8px 40px 8px;
+}
+body[data-mode="terrain"] h1{
+  font-size:20px;
+  text-align:center;
+  margin-bottom:6px;
+}
+body[data-mode="terrain"] .card{
+  margin-bottom:8px;
+}
+body[data-mode="terrain"] button{
+  min-height:40px;
+  font-size:14px;
+}
+body[data-mode="terrain"] footer{
+  font-size:11px;
+}
+@media (max-width:768px){
+  body[data-mode="terrain"] main{
+    padding:6px 6px 32px 6px;
+  }
+  body[data-mode="terrain"] h1{
+    font-size:18px;
+  }
+}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  background:var(--bg);
+}
+header{
+  background:var(--blue);
+  color:#fff;
+  padding:18px 16px;
+}
+header h1{margin:0;font-size:20px}
+header p{margin:6px 0 0;font-size:13px;opacity:.9}
+main{padding:12px;max-width:960px;margin:0 auto;}
+.card{
+  background:var(--card);
+  border-radius:10px;
+  padding:14px;
+  margin-bottom:12px;
+  box-shadow:0 2px 6px rgba(0,0,0,.06);
+}
+.card h3{margin:0 0 10px;font-size:16px}
+.stat{
+  display:flex;
+  justify-content:space-between;
+  padding:6px 0;
+  border-bottom:1px solid #eee;
+  font-size:14px;
+}
+.stat:last-child{border-bottom:none}
+.muted{color:var(--muted)}
+input[type=file]{
+  width:100%;
+  padding:10px;
+  font-size:14px;
+}
+.list-item{
+  padding:10px 0;
+  border-bottom:1px solid #eee;
+}
+.list-item:last-child{border-bottom:none}
+.list-item b{font-size:14px}
+.small{font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body data-mode="expert" data-view="all">
+<nav class="wms-nav">
+  <div class="wms-nav-title">Complément WMS</div>
+  <div class="wms-nav-links">
+    <a href="../../index.html">Accueil</a>
+  </div>
+</nav>
+
+<div class="wms-links">
+  <span class="wms-links-label">Liens rapides :</span>
+  <a href="../../docs/regles.html">Règles opérationnelles</a>
+  <a href="../../docs/bins.html">Bins & Capacités</a>
+  <a href="../../docs/taches.html">Tâches terrain</a>
+</div>
+
+<script>
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  if(params.get("mode")==="terrain"){
+    document.addEventListener("DOMContentLoaded", ()=>setMode("terrain"));
+  }
+})();
+
+// 4.1 Tâches seulement
+function showTasksOnly(){
+  document.querySelectorAll(".card").forEach(c=>{
+    if(!c.innerText.includes("Liste de tâches")){
+      c.style.display="none";
+    }
+  });
+  document.getElementById("terrainControls").style.display="block";
+}
+
+// Restore all
+function showAllSections(){
+  document.querySelectorAll(".card").forEach(c=>c.style.display="block");
+}
+
+// 4.2 Checkbox completion (visual only)
+function toggleDone(cb){
+  if(cb.checked){
+    cb.closest("tr").style.textDecoration="line-through";
+  } else {
+    cb.closest("tr").style.textDecoration="none";
+  }
+}
+
+// 4.3 Zone filter
+function filterByZone(){
+  const z = document.getElementById("zoneFilter").value;
+  document.querySelectorAll("table tbody tr").forEach(r=>{
+    if(!z || r.innerText.includes(z)){
+      r.style.display="";
+    } else {
+      r.style.display="none";
+    }
+  });
+}
+
+</script>
+
+
+<header>
+  <h1>Outil Inventaire – V25 (Entreprise)</h1>
+  <p>Import CSV, stats & suggestions de regroupement P1 / P2</p>
+</header>
+
+<main>
+<div class="card" id="terrainControls">
+  <h3>Mode Terrain – Contrôles</h3>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <button onclick="showTasksOnly()">📋 Tâches seulement</button>
+    <button onclick="showAllSections()">📦 Tout afficher</button>
+    <select id="zoneFilter" onchange="filterByZone()" style="min-height:40px;">
+      <option value="">Filtrer par zone</option>
+      <option value="L2">L2</option>
+      <option value="L3A">L3A</option>
+      <option value="L3B">L3B</option>
+      <option value="L3C">L3C</option>
+      <option value="L3D">L3D</option>
+    </select>
+  </div>
+  <p class="small muted">Astuce : accès direct terrain → ajoute <b>?mode=terrain</b> à l’URL ou crée un QR.</p>
+</div>
+
+  <div class="card mode-switch-card" style="margin-bottom:12px;border:1px solid #d1d5db;">
+    <h3>Mode d'utilisation</h3>
+    <p class="small muted">
+      Choisis le mode : <b>Expert</b> pour préparer & importer l’inventaire (PC) ou <b>Terrain</b> pour consulter et exécuter les tâches.
+    </p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button onclick="setMode('expert')" style="padding:6px 10px;border-radius:6px;border:1px solid #1f4fd8;cursor:pointer;">
+        Mode Expert (PC)
+      </button>
+      <button onclick="setMode('terrain')" style="padding:6px 10px;border-radius:6px;border:1px solid #6b7280;cursor:pointer;">
+        Mode Terrain (Lecture seule)
+      </button>
+    </div>
+    <p id="modeStatus" class="small muted" style="margin-top:6px;">Mode actuel : Expert (PC)</p>
+  </div>
+
+
+  <div class="card" style="position:sticky; top:0; z-index:10;">
+    <h3>0. Actions rapides – Rapports</h3>
+    <p class="small muted">Ces boutons utilisent le dernier inventaire importé et respectent les filtres (type & zone).</p>
+    <button onclick="exportTasks()" style="margin-top:4px;margin-right:8px;padding:8px 12px;border-radius:6px;border:1px solid #ccc;cursor:pointer;">
+      Exporter la liste de tâches (CSV)
+    </button>
+    <button onclick="exportMoves()" style="margin-top:4px;margin-right:8px;padding:8px 12px;border-radius:6px;border:1px solid #ccc;cursor:pointer;">
+      Exporter déplacements (CSV)
+    </button>
+    <button onclick="exportMovesExcel()" style="margin-top:4px;padding:8px 12px;border-radius:6px;border:1px solid #ccc;cursor:pointer;">
+      Exporter déplacements (Excel)
+    </button>
+  </div>
+  <div class="card expert-only">
+    <h3>1. Importer ton inventaire (CSV)</h3>
+    <input id="csvFileInput" type="file" accept=".csv,text/csv" onchange="loadCSV(this)" />
+    <div style="margin-top:6px;">
+      <button type="button" onclick="var f=document.getElementById('csvFileInput'); if(f){ loadCSV(f); }" 
+              style="padding:6px 10px;border-radius:6px;border:1px solid #111827;background:#111827;color:white;cursor:pointer;font-size:12px;">
+        Lancer l'import
+      </button>
+    </div>
+    <p id="importStatus" class="small muted">Aucun fichier importé pour le moment.</p>
+    <p class="small muted">
+      Supporte les exports Indago / Inventory by Bin avec virgules ou point-virgules.
+    </p>
+  </div>
+
+  <div class="card">
+    <h3>2. Résumé inventaire</h3>
+    <div id="stats">
+      <div class="stat"><span class="muted">État</span><span>Aucune donnée</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>3. Déplacements logistiques (SKU multi-emplacements)</h3>
+    <div id="movesList" class="small muted">Aucun déplacement détecté.</div>
+  </div>
+
+  <div class="card">
+    <h3>4. Recommandations de consolidation</h3>
+    <p class="small muted">Proposition de bin principal et bins voisins à prioriser par SKU.</p>
+    <ul class="small muted">
+      <li>Règle 1 : la quantité totale du produit doit idéalement être regroupée dans un seul bin du type prioritaire (hors cas P7 très volumineux).</li>
+      <li>Règle 2 : pour chaque SKU, deux bins vides supplémentaires du même type sont suggérés pour la consolidation ou les futurs conteneurs.</li>
+    </ul>
+    <div id="recoList" class="small muted">Aucune recommandation pour le moment.</div>
+  </div>
+
+  <div class="card" id="tasksCard">
+    <h3>5. Liste de tâches
+
+<button onclick="exportTasksPDF()" class="expert-only" 
+style="margin-top:8px;padding:8px 12px;border-radius:6px;border:1px solid #111827;background:#111827;color:white;cursor:pointer;">
+  Exporter PDF – Tâches terrain
+</button>
+ – Consolidation</h3>
+    <p class="small muted">
+      Liste opérationnelle prête à exécuter. Chaque ligne = 1 tâche terrain.
+    </p>
+    <div class="terrain-only" style="margin:6px 0 8px 0;display:flex;gap:6px;flex-wrap:wrap;">
+      <button onclick="setTerrainView('tasks')" style="padding:6px 10px;border-radius:6px;border:1px solid #10b981;cursor:pointer;">
+        Afficher uniquement les tâches
+      </button>
+      <button onclick="setTerrainView('all')" style="padding:6px 10px;border-radius:6px;border:1px solid #6b7280;cursor:pointer;">
+        Afficher toutes les sections
+      </button>
+    </div>
+    <div class="terrain-only" style="margin:4px 0 6px 0;">
+      <label class="small">Filtrer par zone (ex : L2, L3A) :</label><br/>
+      <input id="tasksZoneFilter" type="text" placeholder="Zone (optionnel)" 
+             style="margin-top:2px;width:140px;border-radius:6px;border:1px solid #d1d5db;padding:4px;font-size:12px;"/>
+      <button onclick="renderTasks()" style="padding:4px 8px;border-radius:6px;border:1px solid #6b7280;cursor:pointer;font-size:12px;">
+        Appliquer
+      </button>
+    </div>
+    <div id="taskList" class="small muted">
+      Aucune tâche générée pour le moment.
+    </div>
+    <button onclick="exportTasks()" style="margin-top:10px;padding:8px 12px;border-radius:6px;border:1px solid #ccc;cursor:pointer;">
+      Exporter la liste de tâches (CSV)
+    </button>
+    <button onclick="exportMoves()" style="margin-top:10px;margin-left:8px;padding:8px 12px;border-radius:6px;border:1px solid #ccc;cursor:pointer;">
+      Exporter la liste des déplacements (CSV)
+    </button>
+    <button onclick="exportMovesExcel()" style="margin-top:10px;margin-left:8px;padding:8px 12px;border-radius:6px;border:1px solid #ccc;cursor:pointer;">
+      Exporter la liste des déplacements (Excel)
+    </button>
+  </div>
+
+  <div class="card">
+    <h3>6. Liste des bins vides (global)</h3>
+    <p class="small muted">
+      Bins connus dans le layout sans quantité d'aucun produit (qty totale = 0 dans l'inventaire importé).
+    </p>
+    <div class="small" style="margin-bottom:8px;">
+      <label>Type de bin :
+        <select id="emptyTypeFilter">
+          <option value="">Tous</option>
+          <option value="P1">P1</option>
+          <option value="P2">P2</option>
+          <option value="P3">P3</option>
+          <option value="P4">P4</option>
+          <option value="P5">P5</option>
+          <option value="P6">P6</option>
+          <option value="P7">P7</option>
+        </select>
+      </label>
+      &nbsp;&nbsp;
+      <label>Zone (préfixe bin, ex : L3A) :
+        <input id="emptyZoneFilter" type="text" style="width:90px;" />
+      </label>
+      &nbsp;
+      <button onclick="renderEmptyBins()" style="padding:4px 8px;border-radius:6px;border:1px solid #ccc;cursor:pointer;font-size:11px;">
+        Appliquer le filtre
+      </button>
+    </div>
+    <div id="emptyBinsList" class="small muted">
+      Aucune donnée (importe d'abord ton inventaire).
+    </div>
+  </div>
+</main>
+
+<footer>
+  © 2026 – Complément WMS – Version v1.0 · Phase 4
+</footer>
+
+
+
+<script>
+function setMode(mode){
+  var body = document.body;
+  if(!body) return;
+  body.setAttribute("data-mode", mode);
+  var status = document.getElementById("modeStatus");
+  if(status){
+    status.textContent = "Mode actuel : " + (mode === "expert" ? "Expert (PC)" : "Terrain (Lecture seule)");
+  }
+}
+
+function setTerrainView(view){
+  var body = document.body;
+  if(!body) return;
+  body.setAttribute("data-view", view);
+}
+
+// Optionnel : permettre l'accès direct au mode terrain via ?mode=terrain
+(function(){
+  try{
+    var params = new URLSearchParams(window.location.search);
+    var mode = params.get("mode");
+    if(mode === "terrain"){
+      setMode("terrain");
+    }
+  }catch(e){}
+})();
+
+var inventory = [];
+// Stocke la dernière carte SKU→bins pour export et filtres
+var lastMap = null;
+// Stocke les bins utilisés (qty > 0) pour déterminer les bins vides
+var lastGlobalUsedBins = null;
+// Liste globale de tous les bins connus (remplie lors de l'import)
+var allBinsList = [];
+
+var binInfo = {
+  "L2A07":"P7",
+  "L2A09":"P7",
+  "L2A11":"P7",
+  "L2A13":"P7",
+  "L2A15":"P7",
+  "L2A17":"P7",
+  "L2A19":"P7",
+  "L2A21":"P7",
+  "L2A23":"P7",
+  "L2A25":"P7",
+  "L2A27":"P7",
+  "L2A29":"P7",
+  "L2A31":"P7",
+  "L2A33":"P7",
+  "L2A35":"P7",
+  "L3A01":"P4",
+  "L3A02":"P2",
+  "L3A03":"P4",
+  "L3A04":"P2",
+  "L3A05":"P4",
+  "L3A06":"P2",
+  "L3A07":"P4",
+  "L3A08":"P3",
+  "L3A09":"P4",
+  "L3A10":"P7",
+  "L3A11":"P4",
+  "L3A12":"P7",
+  "L3A13":"P4",
+  "L3A14":"P7",
+  "L3A15":"P4",
+  "L3A16":"P7",
+  "L3A17":"P4",
+  "L3A18":"P7",
+  "L3A19":"P4",
+  "L3A20":"P7",
+  "L3A21":"P4",
+  "L3A22":"P7",
+  "L3A23":"P4",
+  "L3A24":"P7",
+  "L3A25":"P4",
+  "L3A26":"P7",
+  "L3A27":"P4",
+  "L3A28":"P7",
+  "L3A29":"P4",
+  "L3A30":"P7",
+  "L3A31":"P4",
+  "L3A32":"P7",
+  "L3A33":"P4",
+  "L3A34":"P7",
+  "L3A35":"P4",
+  "L3A36":"P7",
+  "L3A37":"P4",
+  "L3A38":"P7",
+  "L3A39":"P4",
+  "L3A40":"P7",
+  "L3A41":"P4",
+  "L3A42":"P7",
+  "L3A43":"P4",
+  "L3A44":"P7",
+  "L3A45":"P4",
+  "L3A46":"P6",
+  "L3A47":"P4",
+  "L3A48":"P6",
+  "L3A49":"P4",
+  "L3A50":"P6",
+  "L3A51":"P4",
+  "L3A52":"P6",
+  "L3A53":"P4",
+  "L3A54":"P6",
+  "L3A55":"P4",
+  "L3A56":"P7",
+  "L3A57":"P4",
+  "L3A58":"P7",
+  "L3A59":"P4",
+  "L3A60":"P7",
+  "L3A61":"P4",
+  "L3A62":"P7",
+  "L3A63":"P4",
+  "L3A64":"P7",
+  "L3A65":"P4",
+  "L3A66":"P7",
+  "L3A67":"P4",
+  "L3A68":"P7",
+  "L3A69":"P4",
+  "L3A70":"P7",
+  "L3A71":"P4",
+  "L3A72":"P7",
+  "L3A73":"P4",
+  "L3A74":"P7",
+  "L3A75":"P4",
+  "L3A76":"P7",
+  "L3A77":"P4",
+  "L3A78":"P7",
+  "L3A79":"P4",
+  "L3A80":"P7",
+  "L3A81":"P4",
+  "L3A82":"P7",
+  "L3A84":"P7",
+  "L3A86":"P7",
+  "L3A88":"P5",
+  "L3A90":"P3",
+  "L3A92":"P3",
+  "L3A94":"P3",
+  "L3A96":"P3",
+  "L3B01":"P2",
+  "L3B02":"P2",
+  "L3B03":"P2",
+  "L3B04":"P2",
+  "L3B05":"P2",
+  "L3B06":"P2",
+  "L3B07":"P2",
+  "L3B08":"P2",
+  "L3B09":"P2",
+  "L3B10":"P2",
+  "L3B11":"P2",
+  "L3B12":"P2",
+  "L3B13":"P2",
+  "L3B14":"P2",
+  "L3B15":"P2",
+  "L3B16":"P2",
+  "L3B17":"P2",
+  "L3B18":"P2",
+  "L3B19":"P2",
+  "L3B20":"P2",
+  "L3B21":"P2",
+  "L3B22":"P2",
+  "L3B23":"P2",
+  "L3B24":"P2",
+  "L3B25":"P2",
+  "L3B26":"P2",
+  "L3B27":"P2",
+  "L3B28":"P2",
+  "L3B29":"P2",
+  "L3B30":"P2",
+  "L3B31":"P2",
+  "L3B32":"P2",
+  "L3B33":"P2",
+  "L3B34":"P2",
+  "L3B35":"P2",
+  "L3B36":"P2",
+  "L3B37":"P2",
+  "L3B38":"P2",
+  "L3B39":"P2",
+  "L3B40":"P2",
+  "L3B41":"P2",
+  "L3B42":"P2",
+  "L3B43":"P2",
+  "L3B44":"P2",
+  "L3B45":"P2",
+  "L3B46":"P2",
+  "L3B47":"P2",
+  "L3B48":"P2",
+  "L3B49":"P2",
+  "L3B50":"P2",
+  "L3B51":"P2",
+  "L3B52":"P2",
+  "L3B53":"P2",
+  "L3B54":"P2",
+  "L3B55":"P2",
+  "L3B56":"P2",
+  "L3B57":"P2",
+  "L3B58":"P2",
+  "L3B59":"P2",
+  "L3B60":"P2",
+  "L3B61":"P2",
+  "L3B62":"P2",
+  "L3B63":"P2",
+  "L3B64":"P2",
+  "L3B65":"P2",
+  "L3B66":"P2",
+  "L3B67":"P2",
+  "L3B68":"P2",
+  "L3B69":"P2",
+  "L3B70":"P2",
+  "L3B71":"P2",
+  "L3B72":"P2",
+  "L3B73":"P2",
+  "L3B74":"P2",
+  "L3B76":"P2",
+  "L3B78":"P2",
+  "L3B80":"P2",
+  "L3C01":"P1",
+  "L3C02":"P4",
+  "L3C03":"P1",
+  "L3C04":"P4",
+  "L3C05":"P1",
+  "L3C06":"P4",
+  "L3C07":"P1",
+  "L3C08":"P4",
+  "L3C09":"P1",
+  "L3C10":"P4",
+  "L3C11":"P1",
+  "L3C12":"P4",
+  "L3C13":"P1",
+  "L3C14":"P4",
+  "L3C15":"P1",
+  "L3C16":"P4",
+  "L3C17":"P1",
+  "L3C18":"P4",
+  "L3C19":"P1",
+  "L3C20":"P4",
+  "L3C21":"P1",
+  "L3C22":"P4",
+  "L3C23":"P1",
+  "L3C24":"P4",
+  "L3C25":"P1",
+  "L3C26":"P4",
+  "L3C27":"P1",
+  "L3C28":"P4",
+  "L3C29":"P1",
+  "L3C30":"P4",
+  "L3C31":"P1",
+  "L3C32":"P4",
+  "L3C33":"P1",
+  "L3C34":"P4",
+  "L3C35":"P1",
+  "L3C36":"P4",
+  "L3C37":"P1",
+  "L3C38":"P4",
+  "L3C39":"P1",
+  "L3C40":"P4",
+  "L3C41":"P1",
+  "L3C42":"P4",
+  "L3C43":"P1",
+  "L3C44":"P4",
+  "L3C45":"P1",
+  "L3C46":"P4",
+  "L3C47":"P1",
+  "L3C48":"P4",
+  "L3C49":"P1",
+  "L3C50":"P4",
+  "L3C51":"P1",
+  "L3C52":"P4",
+  "L3C53":"P1",
+  "L3C54":"P4",
+  "L3C55":"P1",
+  "L3C56":"P4",
+  "L3C57":"P1",
+  "L3C58":"P4",
+  "L3C59":"P1",
+  "L3C60":"P4",
+  "L3C61":"P1",
+  "L3C62":"P4",
+  "L3C63":"P1",
+  "L3C64":"P4",
+  "L3C65":"P1",
+  "L3C66":"P4",
+  "L3C67":"P1",
+  "L3C68":"P4",
+  "L3C69":"P1",
+  "L3C70":"P4",
+  "L3C72":"P4",
+  "L3C74":"P4",
+  "L3C76":"P4",
+  "L3D00A":"P7",
+  "L3D00B":"P7",
+  "L3D00C":"P1",
+  "L3D01":"P4",
+  "L3D02":"P1",
+  "L3D03":"P3",
+  "L3D04":"P1",
+  "L3D05":"P3",
+  "L3D06":"P1",
+  "L3D07":"P3",
+  "L3D08":"P1",
+  "L3D09":"P3",
+  "L3D10":"P1",
+  "L3D11":"P3",
+  "L3D12":"P1",
+  "L3D13":"P3",
+  "L3D14":"P1",
+  "L3D15":"P3",
+  "L3D16":"P1",
+  "L3D17":"P3",
+  "L3D18":"P1",
+  "L3D19":"P3",
+  "L3D20":"P1",
+  "L3D21":"P3",
+  "L3D22":"P1",
+  "L3D23":"P3",
+  "L3D24":"P1",
+  "L3D25":"P2",
+  "L3D26":"P1",
+  "L3D27":"P2",
+  "L3D28":"P1",
+  "L3D29":"P2",
+  "L3D30":"P1",
+  "L3D31":"P2",
+  "L3D32":"P1",
+  "L3D33":"P2",
+  "L3D34":"P1",
+  "L3D35":"P2",
+  "L3D36":"P1",
+  "L3D37":"P2",
+  "L3D38":"P1",
+  "L3D39":"P2",
+  "L3D40":"P1",
+  "L3D41":"P2",
+  "L3D42":"P1",
+  "L3D43":"P3",
+  "L3D44":"P1",
+  "L3D45":"P3",
+  "L3D46":"P1",
+  "L3D47":"P3",
+  "L3D48":"P1",
+  "L3D49":"P3",
+  "L3D50":"P1",
+  "L3D51":"P3",
+  "L3D52":"P1",
+  "L3D53":"P3",
+  "L3D54":"P1",
+  "L3D55":"P3",
+  "L3D56":"P1",
+  "L3D57":"P3",
+  "L3D58":"P1",
+  "L3D59":"P3",
+  "L3D60":"P1",
+  "L3D61":"P3",
+  "L3D62":"P1",
+  "L3D63":"P3",
+  "L3D64":"P1",
+  "L3D65":"P3",
+  "L3D66":"P1",
+  "L3D67":"P3",
+  "L3D68":"P1",
+  "L3D70":"P1"
+};
+
+function loadCSV(input){
+  var file = input.files[0];
+  if(!file) return;
+  var statusEl = document.getElementById("importStatus");
+  if(statusEl){
+    statusEl.innerHTML = "Fichier sélectionné : " + file.name + " (" + file.size + " octets). Lecture en cours...";
+  }
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    var text = ev.target.result || "";
+    if(statusEl){
+      statusEl.innerHTML += "<br/>Texte lu : " + text.length + " caractères. Traitement...";
+    }
+    try{
+      parseCSV(text);
+    }catch(e){
+      if(statusEl){
+        statusEl.innerHTML += "<br/>Erreur parseCSV : " + e.message;
+      }else{
+        alert("Erreur lors de la lecture du CSV : " + e.message);
+      }
+    }
+  };
+  reader.onerror = function(){
+    if(statusEl){
+      statusEl.innerHTML = "Erreur de lecture du fichier CSV.";
+    }else{
+      alert("Erreur de lecture du fichier CSV.");
+    }
+  };
+  // Lecture sans forcer l'encodage (comme la version de référence V23)
+  reader.readAsText(file);
+}
+
+
+function detectDelimiter(sample){
+  var c = (sample.match(/,/g) || []).length;
+  var s = (sample.match(/;/g) || []).length;
+  if(s > c) return ";";
+  return ",";
+}
+
+
+function parseCSV(text){
+  var statusEl = document.getElementById("importStatus");
+  if(statusEl){
+    statusEl.innerHTML += "<br/>parseCSV appelé.";
+  }
+
+  var rawLines = text.split(/\r?\n|\r/);
+  var lines = [];
+  for(var i=0;i<rawLines.length;i++){
+    var l = rawLines[i];
+    if(l && l.trim() !== "") lines.push(l.replace(/\uFEFF/g, '').trim());
+  }
+  if(!lines.length){
+    document.getElementById("importStatus").innerHTML = "CSV vide ou illisible.";
+    return;
+  }
+
+  // détecter le délimiteur sur la première ligne non vide
+  var delim = detectDelimiter(lines[0]);
+
+  // trouver la ligne d'en-tête (celle qui contient locationname, userbinid, displayline...)
+  var headerIndex = 0;
+  for(var h=0; h<Math.min(5, lines.length); h++){
+    var low = lines[h].toLowerCase();
+    if(low.indexOf("locationname") !== -1 && low.indexOf("userbinid") !== -1 && low.indexOf("displayline") !== -1){
+      headerIndex = h;
+      break;
+    }
+  }
+
+  var headerCols = lines[headerIndex].split(delim);
+  for(var hc=0; hc<headerCols.length; hc++){
+    headerCols[hc] = headerCols[hc].replace(/^"|"$/g,"").trim().toLowerCase();
+  }
+
+  function findIndex(name){
+    for(var idx=0; idx<headerCols.length; idx++){
+      if(headerCols[idx] === name) return idx;
+    }
+    return -1;
+  }
+
+  var idxLoc  = findIndex("locationname");
+  var idxBin  = findIndex("userbinid");
+  var idxSku  = findIndex("displayline");
+  var idxDesc = findIndex("shortdesc");
+  var idxQty  = findIndex("qtyoh");
+
+  // fallback si jamais les noms ne sont pas trouvés (structure classique Indago)
+  if(idxLoc === -1)  idxLoc  = 3;
+  if(idxBin === -1)  idxBin  = 4;
+  if(idxSku === -1)  idxSku  = 6;
+  if(idxDesc === -1) idxDesc = 7;
+  if(idxQty === -1)  idxQty  = 8;
+
+  inventory = [];
+  for(var j=headerIndex+1; j<lines.length; j++){
+    var row = lines[j];
+    if(!row) continue;
+
+    var cols = row.split(delim);
+    for(var k=0;k<cols.length;k++){
+      cols[k] = cols[k].replace(/^"|"$/g,"").trim();
+    }
+
+    var maxIndex = Math.max(idxLoc, idxBin, idxSku, idxDesc, idxQty);
+    if(cols.length <= maxIndex) continue;
+
+    var loc  = cols[idxLoc]  || "";
+    var bin  = cols[idxBin]  || "";
+    var sku  = cols[idxSku]  || "";
+    var desc = cols[idxDesc] || "";
+    var qtyStr = (cols[idxQty] || "").toString().replace(",",".").trim();
+    var qty = parseFloat(qtyStr);
+    if(isNaN(qty)) qty = 0;
+
+    if(!sku || !bin) continue;
+
+    var binType = binInfo[bin] || "";
+
+    inventory.push({
+      location: loc,
+      bin: bin,
+      binType: binType,
+      sku: sku,
+      desc: desc,
+      qty: qty
+    });
+  }
+
+  updateUI();
+}
+
+function updateUI(){
+  var statusEl = document.getElementById("importStatus");
+  if(!inventory.length){
+    statusEl.innerHTML = "Aucune ligne utile trouvée dans le CSV.";
+  }else{
+    statusEl.innerHTML = inventory.length + " lignes importées.";
+  }
+
+  // Stats
+  var skuSet = {};
+  var binSet = {};
+  var totalQty = 0;
+  for(var i=0;i<inventory.length;i++){
+    var it = inventory[i];
+    skuSet[it.sku] = true;
+    binSet[it.bin] = true;
+    totalQty += it.qty;
+  }
+
+  var skuCount = Object.keys(skuSet).length;
+  var binCount = Object.keys(binSet).length;
+
+  var statsHtml = "";
+  statsHtml += '<div class="stat"><span>SKU distincts</span><span>'+skuCount+'</span></div>';
+  statsHtml += '<div class="stat"><span>Emplacements</span><span>'+binCount+'</span></div>';
+  statsHtml += '<div class="stat"><span>Quantité totale</span><span>'+totalQty+'</span></div>';
+  document.getElementById("stats").innerHTML = statsHtml;
+
+  // Déplacements (SKU qui ont plus d'un bin)
+  var map = {};
+  for(var j=0;j<inventory.length;j++){
+    var it2 = inventory[j];
+    if(!map[it2.sku]) map[it2.sku] = [];
+    map[it2.sku].push({
+      location: it2.location,
+      bin: it2.bin,
+      binType: it2.binType,
+      qty: it2.qty
+    });
+  }
+
+  // Sauvegarde la carte pour l'export CSV/Excel
+  lastMap = map;
+  // Marque les bins utilisés (qty > 0)
+  lastGlobalUsedBins = {};
+  for (var skuKey in map){
+    if(!map.hasOwnProperty(skuKey)) continue;
+    var arr = map[skuKey];
+    for(var rr=0; rr<arr.length; rr++){
+      if(arr[rr].qty > 0){
+        lastGlobalUsedBins[arr[rr].bin] = true;
+      }
+    }
+  }
+
+  // Liste de tous les bins connus (à partir du layout)
+  allBinsList = [];
+  for(var bname in binInfo){
+    if(!binInfo.hasOwnProperty(bname)) continue;
+    allBinsList.push({bin: bname, binType: binInfo[bname]});
+  }
+
+  var movesHtml = "";
+  for(var sku in map){
+    if(!map.hasOwnProperty(sku)) continue;
+    // Exclure les SKU 'cdada' de la liste de mouvements
+    var skuLower = (sku || "").toLowerCase();
+    if(skuLower.indexOf("cdada") !== -1) continue;
+    var rows = map[sku];
+    if(rows.length <= 1) continue;
+
+    var hasP1 = false;
+    var hasP2 = false;
+    var detail = "";
+    var typesSet = {};
+
+    for(var r=0;r<rows.length;r++){
+      var row = rows[r];
+      var t = row.binType || "";
+      if(t){ typesSet[t] = true; }
+      if(t === "P1") hasP1 = true;
+      if(t === "P2") hasP2 = true;
+      var typeLabel = t ? "["+t+"] " : "";
+      detail += '<div>'+typeLabel+row.bin+' : '+row.qty+'</div>';
+    }
+
+    var typesList = Object.keys(typesSet);
+    var priorityType = "";
+    var order = ["P1","P2","P3","P4","P5","P6","P7"];
+    for(var oi=0;oi<order.length;oi++){
+      if(typesSet[order[oi]]){ priorityType = order[oi]; break; }
+    }
+
+    var infoType = "";
+    if(typesList.length){
+      infoType = 'Types de bin pour ce SKU : '+typesList.join(', ');
+      if(priorityType){
+        infoType += ' | Type à prioriser : '+priorityType;
+      }
+    }
+
+    var suggestion = "SKU sur plusieurs bins : choisir un bin principal et regrouper les quantités.";
+    if(priorityType === "P1" && typesList.length > 1){
+      suggestion = "Consolider en priorité vers les P1. Utiliser les autres types comme backstock.";
+    }else if(!priorityType && hasP2 && rows.length > 1){
+      suggestion = "SKU présent dans plusieurs P2 : consolider dans un seul P2 (choisir l'emplacement le plus logique).";
+    }
+
+    movesHtml += '<div class="list-item">';
+    movesHtml += '<b>'+sku+'</b><br/>';
+    movesHtml += '<div class="small">'+detail;
+    if(infoType){
+      movesHtml += '<div style="margin-top:4px;">'+infoType+'</div>';
+    }
+    movesHtml += '<div style="margin-top:4px;"><i>'+suggestion+'</i></div></div>';
+    movesHtml += '</div>';
+  }
+
+  if(movesHtml === ""){
+    movesHtml = '<span class="small muted">Aucun déplacement détecté (aucun SKU sur plusieurs emplacements).</span>';
+  }
+
+  // Recommandations de consolidation (bin principal + bins voisins)
+  var recoHtml = "";
+  for(var sku2 in map){
+    if(!map.hasOwnProperty(sku2)) continue;
+    // Exclure les SKU contenant "cdada"
+    var sku2Lower = (sku2 || "").toLowerCase();
+    if(sku2Lower.indexOf("cdada") !== -1) continue;
+    var rows2 = map[sku2];
+    if(rows2.length <= 1) continue;
+
+    // Calcul des types et choix du type prioritaire
+    var typesSet2 = {};
+    var totalQtySku = 0;
+    for(var r2=0;r2<rows2.length;r2++){
+      var row2 = rows2[r2];
+      if(row2.binType){ typesSet2[row2.binType] = true; }
+      totalQtySku += row2.qty;
+    }
+    var order2 = ["P1","P2","P3","P4","P5","P6","P7"];
+    var priorityType2 = "";
+    for(var oi2=0; oi2<order2.length; oi2++){
+      if(typesSet2[order2[oi2]]){ priorityType2 = order2[oi2]; break; }
+    }
+
+    // On choisit les bins candidats : d'abord ceux du type prioritaire, sinon tous
+    var candidates = [];
+    for(var r3=0;r3<rows2.length;r3++){
+      var row3 = rows2[r3];
+      if(priorityType2){
+        if(row3.binType === priorityType2) candidates.push(row3);
+      }else{
+        candidates.push(row3);
+      }
+    }
+    if(candidates.length === 0) candidates = rows2.slice();
+
+    // Parsing du bin pour trouver des voisins (ex : L2A15, L2A17)
+    function parseBinCode(code){
+      var m = code.match(/^(.*?)(\d+)$/);
+      if(!m) return {prefix: code, num: 0};
+      return {prefix: m[1], num: parseInt(m[2],10)||0};
+    }
+
+    // On enrichit les candidats avec prefix/num
+    var parsed = [];
+    for(var c=0;c<candidates.length;c++){
+      var bcode = candidates[c].bin;
+      var p = parseBinCode(bcode);
+      parsed.push({
+        bin: bcode,
+        binType: candidates[c].binType,
+        qty: candidates[c].qty,
+        prefix: p.prefix,
+        num: p.num
+      });
+    }
+
+    // tri par prefix puis numéro
+    parsed.sort(function(a,b){
+      if(a.prefix < b.prefix) return -1;
+      if(a.prefix > b.prefix) return 1;
+      return a.num - b.num;
+    });
+
+    // Bin principal : on prend celui avec le plus de qty, sinon le plus petit num
+    var primary = parsed[0];
+    for(var pIdx=1;pIdx<parsed.length;pIdx++){
+      if(parsed[pIdx].qty > primary.qty){
+        primary = parsed[pIdx];
+      }else if(parsed[pIdx].qty === primary.qty && parsed[pIdx].num < primary.num){
+        primary = parsed[pIdx];
+      }
+    }
+
+    // Bins voisins recommandés : les autres candidates, déjà triés, proches du principal
+    var neighbors = [];
+    for(var n=0;n<parsed.length;n++){
+      if(parsed[n].bin === primary.bin) continue;
+      neighbors.push(parsed[n]);
+    }
+
+    var typeLabelMain = primary.binType ? "["+primary.binType+"] " : "";
+    var lineMain = typeLabelMain + primary.bin;
+
+    var neighborText = "";
+    if(neighbors.length){
+      var tmp = [];
+      for(var nn=0; nn<neighbors.length; nn++){
+        var tlabel = neighbors[nn].binType ? "["+neighbors[nn].binType+"] " : "";
+        tmp.push(tlabel + neighbors[nn].bin);
+      }
+      neighborText = tmp.join(", ");
+    }
+
+    // Bins vides (pour ce SKU) à proposer comme alternatives
+    var usedBins = {};
+    for(var u=0; u<rows2.length; u++){
+      if(rows2[u].qty > 0){
+        usedBins[rows2[u].bin] = true;
+      }
+    }
+
+    var emptyCandidates = [];
+    // Déterminer le type de bin à proposer : type prioritaire si existant, sinon type par défaut "P2"
+    var suggestType = priorityType2;
+    if(!suggestType){
+      suggestType = "P2";
+    }
+    for(var e=0; e<allBinsList.length; e++){
+      var eb = allBinsList[e];
+      // Filtrer uniquement sur le type suggéré afin de proposer des bins vides adaptés au produit
+      if(eb.binType !== suggestType) continue;
+      if(usedBins[eb.bin]) continue;
+      var pE = parseBinCode(eb.bin);
+      emptyCandidates.push({
+        bin: eb.bin,
+        binType: eb.binType,
+        prefix: pE.prefix,
+        num: pE.num
+      });
+    }
+
+    // tri des bins vides : même préfixe que le bin principal d'abord, puis proximité numérique
+    emptyCandidates.sort(function(a,b){
+      var aSame = (a.prefix === primary.prefix);
+      var bSame = (b.prefix === primary.prefix);
+      if(aSame && !bSame) return -1;
+      if(!aSame && bSame) return 1;
+      if(aSame && bSame){
+        return Math.abs(a.num - primary.num) - Math.abs(b.num - primary.num);
+      }
+      if(a.prefix < b.prefix) return -1;
+      if(a.prefix > b.prefix) return 1;
+      return a.num - b.num;
+    });
+
+    var choices = [];
+    for(var cc=0; cc<emptyCandidates.length && cc<2; cc++){
+      var clabel = emptyCandidates[cc].binType ? "["+emptyCandidates[cc].binType+"] " : "";
+      clabel += emptyCandidates[cc].bin;
+      choices.push(clabel);
+    }
+
+    var recoLine = "<b>"+sku2+"</b><br/><div class='small'>";
+    recoLine += "Bin principal recommandé : "+lineMain;
+    if(neighborText){
+      recoLine += "<br/>Bins voisins suggérés : "+neighborText;
+    }
+    if(priorityType2){
+      recoLine += "<br/><span>Type prioritaire : "+priorityType2+"</span>";
+    }
+    if(choices.length){
+      recoLine += "<br/>Choix de bins (vides pour ce SKU) : "+choices.join(", ");
+    }
+    if(priorityType2 === "P7"){
+      recoLine += "<br/><span>Note : pour les volumes importants en P7, répartir la quantité sur plusieurs P7 voisins si nécessaire.</span>";
+    }
+    recoLine += "</div>";
+
+    recoHtml += "<div class='list-item'>"+recoLine+"</div>";
+  }
+  if(recoHtml === ""){
+    recoHtml = "<span class='small muted'>Aucune recommandation (aucun SKU multi-emplacements).</span>";
+  }
+  document.getElementById("recoList").innerHTML = recoHtml;
+
+  // Affichage de la liste des bins vides avec filtres
+  renderEmptyBins();
+
+  document.getElementById("movesList").innerHTML = movesHtml;
+  buildTasks(map);
+}
+
+  // ======================
+  // Liste de tâches
+
+<button onclick="exportTasksPDF()" class="expert-only" 
+style="margin-top:8px;padding:8px 12px;border-radius:6px;border:1px solid #111827;background:#111827;color:white;cursor:pointer;">
+  Exporter PDF – Tâches terrain
+</button>
+ (opérationnelle)
+  // ======================
+  var tasks = [];
+
+  function buildTasks(map){
+    tasks = [];
+    for(var sku in map){
+      if(!map.hasOwnProperty(sku)) continue;
+      // Exclure les SKU contenant "cdada" de la génération des tâches
+      var skuLower = (sku || "").toLowerCase();
+      if(skuLower.indexOf("cdada") !== -1) continue;
+      var rows = map[sku];
+      if(rows.length <= 1) continue;
+
+      // Déterminer le type prioritaire présent pour ce SKU
+      var types = {};
+      for(var j=0; j<rows.length; j++){
+        var t = rows[j].binType;
+        if(t){ types[t] = true; }
+      }
+      var order = ["P1","P2","P3","P4","P5","P6","P7"];
+      var priority = "";
+      for(var o=0; o<order.length; o++){
+        if(types[order[o]]){ priority = order[o]; break; }
+      }
+
+      // Choisir le bin principal : on privilégie un bin du type prioritaire si présent
+      var main = null;
+      if(priority){
+        // Chercher le bin du type prioritaire avec la plus grande quantité
+        for(var i=0; i<rows.length; i++){
+          if(rows[i].binType === priority){
+            if(!main || rows[i].qty > main.qty){
+              main = rows[i];
+            }
+          }
+        }
+      }
+      // Si aucun bin du type prioritaire ou type non défini, choisir le bin avec la plus grande qty
+      if(!main){
+        main = rows[0];
+        for(var k=1; k<rows.length; k++){
+          if(rows[k].qty > main.qty){
+            main = rows[k];
+          }
+        }
+      }
+
+      // Créer les tâches : déplacer les autres bins vers le bin principal
+      for(var m=0; m<rows.length; m++){
+        var r = rows[m];
+        if(r.bin === main.bin) continue;
+        var action = "Déplacer qty vers " + main.bin;
+        if(priority === "P7"){
+          action = "Répartir qty vers P7 voisins (voir recommandation)";
+        }
+        tasks.push({
+          sku: sku,
+          from: r.bin,
+          to: main.bin,
+          qty: r.qty,
+          note: action
+        });
+      }
+    }
+    renderTasks();
+  }
+
+  function renderTasks(){
+    var el = document.getElementById("taskList");
+    if(!tasks.length){
+      el.innerHTML = "Aucune tâche générée.";
+      return;
+    }
+    var zoneFilter = "";
+    var zInput = document.getElementById("tasksZoneFilter");
+    if(zInput){
+      zoneFilter = (zInput.value || "").toUpperCase().trim();
+    }
+    var html = "";
+    for(var i=0;i<tasks.length;i++){
+      var t = tasks[i];
+      if(zoneFilter){
+        var fromU = (t.from || "").toUpperCase();
+        var toU = (t.to || "").toUpperCase();
+        if(fromU.indexOf(zoneFilter) !== 0 && toU.indexOf(zoneFilter) !== 0){
+          continue;
+        }
+      }
+      var id = "task_"+i;
+      html += "<div class='list-item' id='"+id+"'>";
+      html += "<div style='display:flex;align-items:flex-start;gap:6px;'>";
+      html += "<input type='checkbox' class='task-check' onchange=\"toggleTaskDone('"+id+"', this)\" />";
+      html += "<div class='task-content'>";
+      html += "<b>"+t.sku+"</b><br/>";
+      html += "<span class='small'>De "+t.from+" → "+t.to+" | Qty : "+t.qty+"</span><br/>";
+      html += "<i class='small'>"+t.note+"</i>";
+      html += "</div>";
+      html += "</div>";
+      html += "</div>";
+    }
+    if(!html){
+      el.innerHTML = "Aucune tâche après application du filtre de zone.";
+    }else{
+      el.innerHTML = html;
+    }
+  }
+}
+
+
+  
+function toggleTaskDone(id, cb){
+  var el = document.getElementById(id);
+  if(!el) return;
+  if(cb && cb.checked){
+    el.style.opacity = "0.55";
+    var content = el.querySelector(".task-content");
+    if(content){ content.style.textDecoration = "line-through"; }
+  }else{
+    el.style.opacity = "1";
+    var content = el.querySelector(".task-content");
+    if(content){ content.style.textDecoration = "none"; }
+  }
+}
+
+function exportMoves(){
+    if(!lastMap){
+      alert("Aucun inventaire analysé. Importe d'abord un CSV.");
+      return;
+    }
+    var typeFilter = "";
+    var zoneFilter = "";
+    var sel = document.getElementById("emptyTypeFilter");
+    if(sel){ typeFilter = sel.value; }
+    var zoneInput = document.getElementById("emptyZoneFilter");
+    if(zoneInput){ zoneFilter = zoneInput.value.toUpperCase().trim(); }
+
+    var csv = "SKU,BIN,TYPE,QTY\n";
+    for(var sku in lastMap){
+      if(!lastMap.hasOwnProperty(sku)) continue;
+      // Exclure les SKU contenant "cdada"
+      var skuLower = (sku || "").toLowerCase();
+      if(skuLower.indexOf("cdada") !== -1) continue;
+      var rows = lastMap[sku];
+      for(var i=0;i<rows.length;i++){
+        var r = rows[i];
+        if(!(r.qty && r.qty > 0)) continue;
+        var type = r.binType || "";
+        if(typeFilter && type !== typeFilter) continue;
+        if(zoneFilter){
+          if(r.bin.toUpperCase().indexOf(zoneFilter) !== 0) continue;
+        }
+        csv += [sku, r.bin, type, r.qty].join(",") + "\n";
+      }
+    }
+    var blob = new Blob([csv], {type:"text/csv"});
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "liste_deplacements_par_sku.csv";
+    a.click();
+  }
+
+
+  function renderEmptyBins(){
+    if(!lastGlobalUsedBins){
+      document.getElementById("emptyBinsList").innerHTML = "Aucune donnée (importe d'abord ton inventaire).";
+      return;
+    }
+    var typeFilter = "";
+    var zoneFilter = "";
+    var sel = document.getElementById("emptyTypeFilter");
+    if(sel){ typeFilter = sel.value; }
+    var zoneInput = document.getElementById("emptyZoneFilter");
+    if(zoneInput){ zoneFilter = zoneInput.value.toUpperCase().trim(); }
+
+    var emptyBins = [];
+    for (var eb=0; eb<allBinsList.length; eb++){
+      var ebn = allBinsList[eb].bin;
+      var etype = allBinsList[eb].binType || "";
+      if(lastGlobalUsedBins[ebn]) continue; // utilisé dans l'inventaire
+      if(typeFilter && etype !== typeFilter) continue;
+      if(zoneFilter){
+        if(ebn.toUpperCase().indexOf(zoneFilter) !== 0) continue;
+      }
+      emptyBins.push(allBinsList[eb]);
+    }
+    if(emptyBins.length === 0){
+      document.getElementById("emptyBinsList").innerHTML = "Aucun bin vide ne correspond au filtre.";
+    } else {
+      var txt = "";
+      var byType = {};
+      for (var e2=0; e2<emptyBins.length; e2++){
+        var t = emptyBins[e2].binType || "N/A";
+        if(!byType[t]) byType[t] = [];
+        byType[t].push(emptyBins[e2].bin);
+      }
+      for (var tkey in byType){
+        if(!byType.hasOwnProperty(tkey)) continue;
+        txt += "<b>Type "+tkey+"</b>: "+byType[tkey].join(", ")+"<br/>";
+      }
+      document.getElementById("emptyBinsList").innerHTML = txt;
+    }
+  }
+
+
+  
+function exportMovesExcel(){
+  if(!lastMap){
+    alert("Aucun inventaire analysé. Importe d'abord un CSV.");
+    return;
+  }
+  var typeFilter = "";
+  var zoneFilter = "";
+  var sel = document.getElementById("emptyTypeFilter");
+  if(sel){ typeFilter = sel.value; }
+  var zoneInput = document.getElementById("emptyZoneFilter");
+  if(zoneInput){ zoneFilter = zoneInput.value.toUpperCase().trim(); }
+
+  // Génération d'un fichier Excel XML (compatible avec Excel)
+  var xml = '<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?>';
+  xml += '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" ';
+  xml += 'xmlns:o="urn:schemas-microsoft-com:office:office" ';
+  xml += 'xmlns:x="urn:schemas-microsoft-com:office:excel" ';
+  xml += 'xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">';
+  xml += '<Worksheet ss:Name="Deplacements"><Table>';
+
+  // Ligne d'entête
+  xml += '<Row>';
+  ['SKU','BIN','TYPE','QTY'].forEach(function(h){
+    xml += '<Cell><Data ss:Type="String">'+h+'</Data></Cell>';
+  });
+  xml += '</Row>';
+
+  var hasRow = false;
+  for(var sku in lastMap){
+    if(!lastMap.hasOwnProperty(sku)) continue;
+    // Exclure les SKU contenant "cdada"
+    var skuLower = (sku || "").toLowerCase();
+    if(skuLower.indexOf("cdada") !== -1) continue;
+    var rows = lastMap[sku];
+    for(var i=0;i<rows.length;i++){
+      var r = rows[i];
+      if(!(r.qty && r.qty > 0)) continue;
+      var type = r.binType || "";
+      if(typeFilter && type !== typeFilter) continue;
+      if(zoneFilter && r.bin.toUpperCase().indexOf(zoneFilter) !== 0) continue;
+
+      hasRow = true;
+      xml += '<Row>';
+      xml += '<Cell><Data ss:Type="String">'+sku+'</Data></Cell>';
+      xml += '<Cell><Data ss:Type="String">'+r.bin+'</Data></Cell>';
+      xml += '<Cell><Data ss:Type="String">'+type+'</Data></Cell>';
+      xml += '<Cell><Data ss:Type="Number">'+r.qty+'</Data></Cell>';
+      xml += '</Row>';
+    }
+  }
+
+  xml += '</Table></Worksheet></Workbook>';
+
+  if(!hasRow){
+    alert("Aucune donnée à exporter avec les filtres actuels.");
+    return;
+  }
+
+  var blob = new Blob([xml], {type:"application/vnd.ms-excel"});
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "liste_deplacements_par_sku.xls";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+}
+
+  function exportTasks(){
+    if(!tasks.length){
+      alert("Aucune tâche à exporter");
+      return;
+    }
+    var csv = "SKU,FROM_BIN,TO_BIN,QTY,NOTE\n";
+    for(var i=0;i<tasks.length;i++){
+      var t = tasks[i];
+      csv += [t.sku,t.from,t.to,t.qty,t.note].join(",") + "\n";
+    }
+    var blob = new Blob([csv], {type:"text/csv"});
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "liste_taches_consolidation.csv";
+    a.click();
+  }
+
+function exportTasksPDF(){
+  alert("Astuce : sélectionne l’option 'Imprimer' puis 'Enregistrer en PDF'.\nLe document est déjà optimisé pour le terrain.");
+  window.print();
+}
+
+// 4.1 Tâches seulement
+function showTasksOnly(){
+  document.querySelectorAll(".card").forEach(c=>{
+    if(!c.innerText.includes("Liste de tâches")){
+      c.style.display="none";
+    }
+  });
+  document.getElementById("terrainControls").style.display="block";
+}
+
+// Restore all
+function showAllSections(){
+  document.querySelectorAll(".card").forEach(c=>c.style.display="block");
+}
+
+// 4.2 Checkbox completion (visual only)
+function toggleDone(cb){
+  if(cb.checked){
+    cb.closest("tr").style.textDecoration="line-through";
+  } else {
+    cb.closest("tr").style.textDecoration="none";
+  }
+}
+
+// 4.3 Zone filter
+function filterByZone(){
+  const z = document.getElementById("zoneFilter").value;
+  document.querySelectorAll("table tbody tr").forEach(r=>{
+    if(!z || r.innerText.includes(z)){
+      r.style.display="";
+    } else {
+      r.style.display="none";
+    }
+  });
+}
+
+</script>
+
+</body>
+</html>

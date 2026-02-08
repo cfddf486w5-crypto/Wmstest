@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <link rel="stylesheet" href="../assets/css/wms.css">
+  <meta charset="UTF-8">
+  <title>Complément WMS – Règles opérationnelles</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root{
+      --primary:#0072C6;
+      --bg:#F5F6F8;
+      --card:#ffffff;
+      --border:#E1E4E8;
+      --text:#111827;
+      --muted:#6b7280;
+      --ok:#10b981;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    header{
+      background:var(--primary);
+      color:#fff;
+      padding:1rem;
+    }
+    header h1{
+      margin:0;
+      font-size:1.25rem;
+    }
+    header p{
+      margin:0.35rem 0 0;
+      font-size:0.85rem;
+      opacity:0.9;
+    }
+    main{
+      max-width:980px;
+      margin:0 auto;
+      padding:1rem;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:1rem;
+      margin-bottom:1rem;
+      box-shadow:0 1px 4px rgba(0,0,0,0.06);
+    }
+    .card h2{
+      margin:0 0 0.6rem;
+      font-size:1.05rem;
+    }
+    .card h3{
+      margin:0.8rem 0 0.4rem;
+      font-size:0.95rem;
+    }
+    .rule{
+      padding:0.55rem 0.6rem;
+      border-left:4px solid var(--primary);
+      background:#f8fafc;
+      border-radius:6px;
+      margin:0.4rem 0;
+      font-size:0.85rem;
+    }
+    .rule.ok{ border-left-color:var(--ok); }
+    .rule.warn{ border-left-color:var(--warn); }
+    .rule.bad{ border-left-color:var(--bad); }
+
+    .tag{
+      display:inline-block;
+      font-size:0.7rem;
+      text-transform:uppercase;
+      letter-spacing:0.04em;
+      background:#e5e7eb;
+      border-radius:999px;
+      padding:0.12rem 0.5rem;
+      margin-right:0.3rem;
+    }
+    footer{
+      text-align:center;
+      font-size:0.75rem;
+      color:var(--muted);
+      margin:1.5rem 0 1rem;
+    }
+  </style>
+</head>
+<body>
+<nav class="wms-nav">
+  <div class="wms-nav-title">Complément WMS</div>
+  <div class="wms-nav-links">
+    <a href="../index.html">Accueil</a>
+  </div>
+</nav>
+
+
+<header>
+  <h1>Complément WMS – Règles opérationnelles</h1>
+  <p>Base de référence pour la logique métier, la consolidation et les décisions terrain</p>
+</header>
+
+<main>
+
+  <div class="card">
+    <h2>🎯 Objectif de ces règles</h2>
+    <p style="font-size:0.85rem;color:var(--muted);">
+      Ces règles définissent le <b>comportement attendu</b> du système Complément WMS.
+      Elles servent de référence pour :
+      <br>• les décisions automatisées
+      <br>• la formation des employés
+      <br>• la cohérence entre inventaire, consolidation et expéditions
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>📦 Règles générales d’inventaire</h2>
+
+    <div class="rule ok">
+      Un SKU doit idéalement être présent dans <b>un seul bin principal</b>.
+    </div>
+
+    <div class="rule warn">
+      Les SKU répartis sur plusieurs bins sont considérés comme <b>prioritaires à analyser</b>.
+    </div>
+
+    <div class="rule bad">
+      Éviter de mélanger plusieurs SKU dans un même bin si un autre bin vide du bon type est disponible.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🧱 Règles de types de bins (P1 → P7)</h2>
+
+    <div class="rule">
+      <span class="tag">P1</span>
+      Priorité maximale – petits items à rotation élevée.
+    </div>
+    <div class="rule">
+      <span class="tag">P2</span>
+      Items moyens – picking régulier.
+    </div>
+    <div class="rule">
+      <span class="tag">P3</span>
+      Items moyens / lourds – rotation modérée.
+    </div>
+    <div class="rule">
+      <span class="tag">P4</span>
+      Items volumineux – picking occasionnel.
+    </div>
+    <div class="rule">
+      <span class="tag">P5–P6</span>
+      Backstock structuré.
+    </div>
+    <div class="rule warn">
+      <span class="tag">P7</span>
+      Volumineux – la consolidation peut nécessiter plusieurs bins voisins.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔁 Règles de consolidation</h2>
+
+    <div class="rule ok">
+      Le bin principal est celui avec la <b>plus grande quantité</b> dans le type prioritaire disponible.
+    </div>
+
+    <div class="rule">
+      Les autres bins deviennent des <b>sources de déplacement</b> vers le bin principal.
+    </div>
+
+    <div class="rule warn">
+      En P7, la consolidation peut être <b>partielle</b> selon l’espace disponible.
+    </div>
+
+    <div class="rule bad">
+      Ne jamais consolider si la capacité du bin cible est dépassée.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🚫 Cas volontairement exclus</h2>
+
+    <div class="rule">
+      Le système ne force jamais un déplacement si aucune option valide n’existe.
+    </div>
+
+    <div class="rule">
+      Les SKU spéciaux / exceptions terrain peuvent être ignorés volontairement.
+    </div>
+
+    <div class="rule">
+      Complément WMS <b>ne remplace pas</b> le WMS officiel – il le complète.
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  © 2026 – Complément WMS – Version v1.0 · Phase 4
+</footer>
+
+</body>
+</html>

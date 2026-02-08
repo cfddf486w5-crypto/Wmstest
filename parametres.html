@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Complément WMS – Paramètres</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../assets/css/wms.css">
+  <style>
+    main{
+      max-width:980px;
+      margin:0 auto;
+      padding:0.9rem;
+    }
+    .card{
+      padding:0.9rem 1rem;
+      margin-bottom:0.9rem;
+    }
+    h2{
+      margin:0 0 0.5rem;
+      font-size:1.02rem;
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:0.82rem;
+    }
+    th, td{
+      padding:0.4rem 0.45rem;
+      border-bottom:1px solid #e5e7eb;
+      text-align:left;
+    }
+    th{
+      font-size:0.78rem;
+      text-transform:uppercase;
+      letter-spacing:0.06em;
+      color:var(--muted);
+      background:#f9fafb;
+    }
+    tr:last-child td{
+      border-bottom:none;
+    }
+    .muted{
+      color:var(--muted);
+      font-size:0.8rem;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:0.12rem 0.45rem;
+      border-radius:999px;
+      font-size:0.72rem;
+      border:1px solid #d1d5db;
+      background:#f9fafb;
+      margin-right:0.2rem;
+    }
+  </style>
+</head>
+<body>
+
+<nav class="wms-nav">
+  <div class="wms-nav-title">Complément WMS</div>
+  <div class="wms-nav-links">
+    <a href="../index.html">Accueil</a>
+  </div>
+</nav>
+
+<header style="padding:1rem;">
+  <h1>Paramètres Complément WMS</h1>
+  <p>Vue en lecture seule des principaux paramètres utilisés par les outils</p>
+</header>
+
+<main>
+
+  <section class="card">
+    <h2>🎯 Objectif de cette page</h2>
+    <p class="muted">
+      Cette page liste les <b>paramètres globaux</b> utilisés par Complément WMS
+      (capacités cibles, Top N, comportements généraux).<br>
+      Pour l’instant, ces valeurs sont <b>documentaires</b> (lecture seule).
+      Dans une future version, cette page pourra devenir un écran de configuration.
+    </p>
+  </section>
+
+  <section class="card">
+    <h2>🧱 Capacités cibles par type de bin</h2>
+    <p class="muted">
+      Référence utilisée par l’inventaire et la consolidation pour évaluer
+      si un bin est raisonnablement rempli ou non.
+    </p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Usage principal</th>
+          <th>Capacité cible (indicative)</th>
+          <th>Commentaire</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="pill">P1</span></td>
+          <td>Picking prioritaire, petits items</td>
+          <td>Faible / moyenne</td>
+          <td>Doit rester fluide et accessible pour éviter les zero-pick.</td>
+        </tr>
+        <tr>
+          <td><span class="pill">P2</span></td>
+          <td>Picking régulier</td>
+          <td>Moyenne</td>
+          <td>Zone de travail principale pour beaucoup de familles produits.</td>
+        </tr>
+        <tr>
+          <td><span class="pill">P3</span></td>
+          <td>Items plus lourds / moyens</td>
+          <td>Moyenne / élevée</td>
+          <td>Souvent utilisé en complément des zones P1/P2.</td>
+        </tr>
+        <tr>
+          <td><span class="pill">P4</span></td>
+          <td>Volumineux, rotation plus faible</td>
+          <td>Élevée</td>
+          <td>Importante pour garder un layout cohérent par famille.</td>
+        </tr>
+        <tr>
+          <td><span class="pill">P5–P6</span></td>
+          <td>Backstock structuré</td>
+          <td>Élevée / très élevée</td>
+          <td>Stock tampon, rarement utilisé en premier pour le picking.</td>
+        </tr>
+        <tr>
+          <td><span class="pill">P7</span></td>
+          <td>Très volumineux / palettes</td>
+          <td>Très élevée</td>
+          <td>Souvent lié à la zone L2 pour les palettes et pneus.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>📊 Paramètres d’inventaire</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Paramètre</th>
+          <th>Valeur indicative</th>
+          <th>Impact</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Afficher les SKU à plusieurs bins</td>
+          <td>Activé</td>
+          <td>Permet d’identifier les candidats prioritaires à la consolidation.</td>
+        </tr>
+        <tr>
+          <td>Afficher les bins vides connus</td>
+          <td>Activé</td>
+          <td>Aide au spotage et à la préparation des prochains conteneurs.</td>
+        </tr>
+        <tr>
+          <td>Inclure les lignes qty = 0</td>
+          <td>Désactivé (par défaut)</td>
+          <td>Peut être activé pour des audits spécifiques.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>🧱 Paramètres de consolidation</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Paramètre</th>
+          <th>Valeur indicative</th>
+          <th>Impact</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Top N déplacements visibles</td>
+          <td>5</td>
+          <td>Évite de surcharger le plancher, focus sur les meilleurs mouvements.</td>
+        </tr>
+        <tr>
+          <td>Priorité type de bin</td>
+          <td>P1 &gt; P2 &gt; P3 &gt; P4 &gt; P5 &gt; P6 &gt; P7</td>
+          <td>Guide le choix du bin principal pour un SKU multi-emplacements.</td>
+        </tr>
+        <tr>
+          <td>Respect des capacités</td>
+          <td>Obligatoire</td>
+          <td>Aucun déplacement proposé si la capacité cible est dépassée.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>📦 Paramètres d’expédition (suivi palettes)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Paramètre</th>
+          <th>Valeur indicative</th>
+          <th>Impact</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Filtre PDF par date</td>
+          <td>Activé</td>
+          <td>Le rapport PDF affiche uniquement les commandes de la date sélectionnée.</td>
+        </tr>
+        <tr>
+          <td>Numéro de palette en majuscules</td>
+          <td>Activé</td>
+          <td>Uniformise l’affichage pour les transporteurs et les rapports.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>🔭 Évolutions futures</h2>
+    <p class="muted">
+      Dans une prochaine version, cette page pourrait permettre :
+    </p>
+    <ul class="muted" style="padding-left:1rem;">
+      <li>de modifier les capacités cibles par type de bin et par zone,</li>
+      <li>de régler le Top N de consolidation par défaut,</li>
+      <li>de choisir quelles sections sont visibles dans les outils terrain,</li>
+      <li>d’activer ou non certains modules (expéditions, tâches, etc.).</li>
+    </ul>
+  </section>
+
+</main>
+
+<footer>
+  © 2026 – Complément WMS – Version v1.0 · Phase 6
+</footer>
+
+</body>
+</html>

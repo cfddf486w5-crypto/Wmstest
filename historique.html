@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <link rel="stylesheet" href="../assets/css/wms.css">
+  <meta charset="UTF-8">
+  <title>Complément WMS – Historique & décisions</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root{
+      --primary:#0072C6;
+      --bg:#F5F6F8;
+      --card:#ffffff;
+      --border:#E1E4E8;
+      --text:#111827;
+      --muted:#6b7280;
+      --ok:#10b981;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    header{
+      background:var(--primary);
+      color:#fff;
+      padding:1rem;
+    }
+    header h1{
+      margin:0;
+      font-size:1.2rem;
+    }
+    header p{
+      margin:0.35rem 0 0;
+      font-size:0.85rem;
+      opacity:0.9;
+    }
+    main{
+      max-width:980px;
+      margin:0 auto;
+      padding:0.9rem;
+    }
+    .card{
+      background:var(--card);
+      border-radius:12px;
+      border:1px solid var(--border);
+      padding:0.9rem 1rem;
+      margin-bottom:0.9rem;
+      box-shadow:0 1px 4px rgba(0,0,0,0.06);
+    }
+    .card h2{
+      margin:0 0 0.5rem;
+      font-size:1.02rem;
+    }
+    .muted{
+      color:var(--muted);
+      font-size:0.8rem;
+    }
+    .filters{
+      display:flex;
+      flex-wrap:wrap;
+      gap:0.5rem;
+      margin-bottom:0.4rem;
+      font-size:0.8rem;
+    }
+    .filters select,
+    .filters input{
+      padding:0.3rem 0.4rem;
+      border-radius:999px;
+      border:1px solid var(--border);
+      font-size:0.8rem;
+    }
+    .filters button{
+      padding:0.35rem 0.7rem;
+      border-radius:999px;
+      border:none;
+      background:var(--primary);
+      color:#fff;
+      font-size:0.8rem;
+      cursor:pointer;
+    }
+    .timeline{
+      position:relative;
+      margin-top:0.4rem;
+    }
+    .timeline::before{
+      content:"";
+      position:absolute;
+      left:10px;
+      top:0;
+      bottom:0;
+      width:2px;
+      background:#e5e7eb;
+    }
+    .event{
+      position:relative;
+      padding-left:1.8rem;
+      padding-bottom:0.8rem;
+    }
+    .event:last-child{
+      padding-bottom:0;
+    }
+    .event-dot{
+      position:absolute;
+      left:5px;
+      top:4px;
+      width:10px;
+      height:10px;
+      border-radius:999px;
+      background:#e5e7eb;
+    }
+    .event-dot.conso{ background:#6366f1; }
+    .event-dot.inv{ background:#0ea5e9; }
+    .event-dot.exp{ background:#10b981; }
+    .event-head{
+      display:flex;
+      flex-wrap:wrap;
+      gap:0.35rem;
+      align-items:baseline;
+    }
+    .event-date{
+      font-size:0.78rem;
+      color:var(--muted);
+    }
+    .event-title{
+      font-size:0.9rem;
+      font-weight:600;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:0.2rem;
+      padding:0.1rem 0.45rem;
+      border-radius:999px;
+      font-size:0.7rem;
+      background:#e5e7eb;
+      color:#374151;
+    }
+    .badge-dot{
+      width:0.45rem;
+      height:0.45rem;
+      border-radius:999px;
+      background:#9ca3af;
+    }
+    .badge-conso .badge-dot{ background:#6366f1; }
+    .badge-inv .badge-dot{ background:#0ea5e9; }
+    .badge-exp .badge-dot{ background:#10b981; }
+    .badge-impact-H .badge-dot{ background:#ef4444; }
+    .badge-impact-M .badge-dot{ background:#f59e0b; }
+    .badge-impact-B .badge-dot{ background:#10b981; }
+    .event-body{
+      font-size:0.8rem;
+      margin-top:0.25rem;
+    }
+    .event-tags{
+      font-size:0.75rem;
+      color:var(--muted);
+      margin-top:0.15rem;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:0.12rem 0.45rem;
+      border-radius:999px;
+      font-size:0.7rem;
+      border:1px solid #d1d5db;
+      background:#f9fafb;
+      margin-right:0.2rem;
+      margin-top:0.1rem;
+    }
+    footer{
+      text-align:center;
+      font-size:0.75rem;
+      color:var(--muted);
+      margin:1.2rem 0 0.8rem;
+    }
+    @media(max-width:600px){
+      header h1{font-size:1.1rem;}
+      main{padding:0.7rem;}
+    }
+  </style>
+</head>
+<body>
+<nav class="wms-nav">
+  <div class="wms-nav-title">Complément WMS</div>
+  <div class="wms-nav-links">
+    <a href="../index.html">Accueil</a>
+  </div>
+</nav>
+
+
+<header>
+  <h1>Complément WMS – Historique & décisions</h1>
+  <p>Tracer les grandes décisions prises sur l’inventaire, la consolidation et les expéditions</p>
+</header>
+
+<main>
+
+  <div class="card">
+    <h2>🎯 Rôle de cette page</h2>
+    <p class="muted">
+      Cette page sert à garder une trace des <b>décisions importantes</b> liées à Complément WMS :
+      changements de règles, ajustements de capacité, nouvelles stratégies de consolidation ou d’expédition.
+      <br><br>
+      Objectifs :
+      <br>• comprendre pourquoi une règle existe
+      <br>• garder la mémoire des tests terrain
+      <br>• faciliter les discussions avec la direction et les équipes
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>🔎 Filtrer l’historique</h2>
+    <div class="filters">
+      <select id="moduleFilter">
+        <option value="">Module (tous)</option>
+        <option value="conso">Consolidation</option>
+        <option value="inv">Inventaire</option>
+        <option value="exp">Expéditions</option>
+      </select>
+      <select id="impactFilter">
+        <option value="">Impact (tous)</option>
+        <option value="H">Haute</option>
+        <option value="M">Moyenne</option>
+        <option value="B">Basse</option>
+      </select>
+      <input id="zoneFilter" type="text" placeholder="Zone (ex: L2, L3A)" />
+      <button type="button" onclick="applyFilters()">Appliquer</button>
+    </div>
+    <p class="muted">
+      Les entrées actuelles sont des exemples basés sur le fonctionnement réel des outils.
+      Dans une future version connectée, cette page pourra être alimentée automatiquement
+      par les exports ou par un petit backend.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>📜 Historique des décisions (exemples)</h2>
+
+    <div class="timeline" id="timeline">
+
+      <div class="event" data-module="conso" data-impact="H" data-zone="L3A">
+        <div class="event-dot conso"></div>
+        <div class="event-head">
+          <span class="event-date">2026-01-26</span>
+          <span class="event-title">Priorité P1 → P7 pour la consolidation</span>
+          <span class="badge badge-conso"><span class="badge-dot"></span>Consolidation</span>
+          <span class="badge badge-impact-H"><span class="badge-dot"></span>Impact haute</span>
+        </div>
+        <div class="event-body">
+          Mise en place d’un ordre de priorité P1 &gt; P2 &gt; P3 &gt; P4 &gt; P5 &gt; P6 &gt; P7
+          pour choisir le bin principal lors de la consolidation. Permet d’orienter le stock
+          vers les emplacements les plus logiques pour le picking.
+        </div>
+        <div class="event-tags">
+          <span class="pill">Règle consolidation</span>
+          <span class="pill">SKU multi-bins</span>
+          <span class="pill">Zone L3A</span>
+        </div>
+      </div>
+
+      <div class="event" data-module="inv" data-impact="M" data-zone="L3B">
+        <div class="event-dot inv"></div>
+        <div class="event-head">
+          <span class="event-date">2026-01-26</span>
+          <span class="event-title">Introduction de la liste de bins vides</span>
+          <span class="badge badge-inv"><span class="badge-dot"></span>Inventaire</span>
+          <span class="badge badge-impact-M"><span class="badge-dot"></span>Impact moyenne</span>
+        </div>
+        <div class="event-body">
+          Ajout d’une vue globale des bins connus dans le layout mais non utilisés dans l’inventaire importé.
+          Facilite le spotage, la préparation de nouvelles familles de produits et la mise en place de futurs
+          conteneurs.
+        </div>
+        <div class="event-tags">
+          <span class="pill">V25 Inventaire</span>
+          <span class="pill">Bins vides</span>
+          <span class="pill">Zone L3B</span>
+        </div>
+      </div>
+
+      <div class="event" data-module="exp" data-impact="H" data-zone="L2">
+        <div class="event-dot exp"></div>
+        <div class="event-head">
+          <span class="event-date">2026-02-04</span>
+          <span class="event-title">Export PDF par date pour le suivi des palettes</span>
+          <span class="badge badge-exp"><span class="badge-dot"></span>Expéditions</span>
+          <span class="badge badge-impact-H"><span class="badge-dot"></span>Impact haute</span>
+        </div>
+        <div class="event-body">
+          Ajustement du rapport PDF pour qu’il n’affiche que les commandes de la journée sélectionnée.
+          Améliore la lisibilité pour les transporteurs et la vérification de fin de journée.
+        </div>
+        <div class="event-tags">
+          <span class="pill">Suivi expé Langelier</span>
+          <span class="pill">Rapport PDF</span>
+          <span class="pill">Zone expédition</span>
+        </div>
+      </div>
+
+      <div class="event" data-module="conso" data-impact="M" data-zone="L2">
+        <div class="event-dot conso"></div>
+        <div class="event-head">
+          <span class="event-date">2026-02-06</span>
+          <span class="event-title">Limitation du nombre de déplacements affichés</span>
+          <span class="badge badge-conso"><span class="badge-dot"></span>Consolidation</span>
+          <span class="badge badge-impact-M"><span class="badge-dot"></span>Impact moyenne</span>
+        </div>
+        <div class="event-body">
+          Limitation du nombre de déplacements visibles en bas de page (Top N) pour éviter de surcharger
+          le plancher et se concentrer sur les mouvements les plus rentables à court terme.
+        </div>
+        <div class="event-tags">
+          <span class="pill">Ultra Focus</span>
+          <span class="pill">Top N</span>
+          <span class="pill">Lisibilité terrain</span>
+        </div>
+      </div>
+
+    
+      <div class="event" data-module="inv" data-impact="M" data-zone="L3B">
+        <div class="event-dot inv"></div>
+        <div class="event-head">
+          <span class="event-date">2026-02-08</span>
+          <span class="event-title">Structuration Complément WMS (portail & nav)</span>
+          <span class="badge badge-inv"><span class="badge-dot"></span>Inventaire</span>
+          <span class="badge badge-impact-M"><span class="badge-dot"></span>Impact moyenne</span>
+        </div>
+        <div class="event-body">
+          Mise en place d’un portail unique (index) avec cartes par module, barre de navigation
+          standard et titres harmonisés. Facilite l’usage au quotidien et la présentation du
+          projet à la direction.
+        </div>
+        <div class="event-tags">
+          <span class="pill">Portail</span>
+          <span class="pill">Navigation</span>
+          <span class="pill">Version v1.0</span>
+        </div>
+      </div>
+
+      <div class="event" data-module="conso" data-impact="M" data-zone="L2">
+        <div class="event-dot conso"></div>
+        <div class="event-head">
+          <span class="event-date">2026-02-08</span>
+          <span class="event-title">Thème CSS partagé & liens rapides</span>
+          <span class="badge badge-conso"><span class="badge-dot"></span>Consolidation</span>
+          <span class="badge badge-impact-M"><span class="badge-dot"></span>Impact moyenne</span>
+        </div>
+        <div class="event-body">
+          Création d’un thème CSS commun (wms.css) et ajout de liens rapides entre Inventaire,
+          Consolidation, Tâches et Règles. Réduit la maintenance et améliore la navigation pour
+          les superviseurs.
+        </div>
+        <div class="event-tags">
+          <span class="pill">CSS partagé</span>
+          <span class="pill">Liens rapides</span>
+          <span class="pill">Expérience utilisateur</span>
+        </div>
+      </div>
+
+      <div class="event" data-module="exp" data-impact="B" data-zone="L2">
+        <div class="event-dot exp"></div>
+        <div class="event-head">
+          <span class="event-date">2026-02-08</span>
+          <span class="event-title">Introduction de la page Paramètres Complément</span>
+          <span class="badge badge-exp"><span class="badge-dot"></span>Expéditions</span>
+          <span class="badge badge-impact-B"><span class="badge-dot"></span>Impact basse</span>
+        </div>
+        <div class="event-body">
+          Ajout d’une page Paramètres listant les capacités cibles par type de bin, les options
+          d’inventaire, les règles de consolidation et les paramètres clés du suivi palettes.
+          Sert de base à une future configuration centralisée.
+        </div>
+        <div class="event-tags">
+          <span class="pill">Paramètres</span>
+          <span class="pill">Documentation</span>
+          <span class="pill">Base futur backend</span>
+        </div>
+      </div>
+
+</div>
+
+    <p class="muted" style="margin-top:0.6rem;">
+      📝 Dans une prochaine version, chaque décision importante (nouvelle règle, changement de seuil,
+      modification de layout) pourra être ajoutée ici, soit à la main, soit via un petit formulaire
+      ou un backend léger.
+    </p>
+  </div>
+
+</main>
+
+<footer>
+  © 2026 – Complément WMS – Version v1.0 · Phase 4
+</footer>
+
+<script>
+function applyFilters(){
+  const moduleVal = document.getElementById('moduleFilter').value;
+  const impactVal = document.getElementById('impactFilter').value;
+  const zoneVal = (document.getElementById('zoneFilter').value || '').toUpperCase().trim();
+
+  document.querySelectorAll('.event').forEach(ev => {
+    const m = ev.getAttribute('data-module') || '';
+    const i = ev.getAttribute('data-impact') || '';
+    const z = (ev.getAttribute('data-zone') || '').toUpperCase();
+
+    let visible = true;
+    if(moduleVal && m !== moduleVal) visible = false;
+    if(impactVal && i !== impactVal) visible = false;
+    if(zoneVal && z.indexOf(zoneVal) !== 0) visible = false;
+
+    ev.style.display = visible ? 'block' : 'none';
+  });
+}
+</script>
+
+</body>
+</html>

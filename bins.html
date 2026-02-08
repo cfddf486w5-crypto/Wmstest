@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <link rel="stylesheet" href="../assets/css/wms.css">
+  <meta charset="UTF-8">
+  <title>Complément WMS – Bins & Capacités</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root{
+      --primary:#0072C6;
+      --bg:#F5F6F8;
+      --card:#ffffff;
+      --border:#E1E4E8;
+      --text:#111827;
+      --muted:#6b7280;
+      --ok:#10b981;
+      --warn:#f59e0b;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    header{
+      background:var(--primary);
+      color:#fff;
+      padding:1rem;
+    }
+    header h1{
+      margin:0;
+      font-size:1.2rem;
+    }
+    header p{
+      margin:0.35rem 0 0;
+      font-size:0.85rem;
+      opacity:0.9;
+    }
+    main{
+      max-width:980px;
+      margin:0 auto;
+      padding:0.9rem;
+    }
+    .card{
+      background:var(--card);
+      border-radius:12px;
+      border:1px solid var(--border);
+      padding:0.9rem 1rem;
+      margin-bottom:0.9rem;
+      box-shadow:0 1px 4px rgba(0,0,0,0.06);
+    }
+    .card h2{
+      margin:0 0 0.5rem;
+      font-size:1.02rem;
+    }
+    .card h3{
+      margin:0.7rem 0 0.4rem;
+      font-size:0.95rem;
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:0.82rem;
+    }
+    th, td{
+      padding:0.4rem 0.45rem;
+      border-bottom:1px solid #e5e7eb;
+      text-align:left;
+    }
+    th{
+      font-size:0.78rem;
+      text-transform:uppercase;
+      letter-spacing:0.06em;
+      color:var(--muted);
+      background:#f9fafb;
+    }
+    tr:last-child td{
+      border-bottom:none;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:0.12rem 0.45rem;
+      border-radius:999px;
+      font-size:0.72rem;
+      border:1px solid #d1d5db;
+      background:#f9fafb;
+    }
+    .pill-primary{
+      background:#eff6ff;
+      color:#1d4ed8;
+      border-color:#bfdbfe;
+    }
+    .pill-warn{
+      background:#fffbeb;
+      color:#b45309;
+      border-color:#fed7aa;
+    }
+    .muted{
+      color:var(--muted);
+      font-size:0.8rem;
+    }
+    .zone-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      gap:0.5rem;
+      margin-top:0.4rem;
+    }
+    .zone-card{
+      border-radius:10px;
+      border:1px solid #e5e7eb;
+      background:#f9fafb;
+      padding:0.5rem 0.6rem;
+      font-size:0.8rem;
+    }
+    .zone-title{
+      font-weight:600;
+      margin-bottom:0.15rem;
+    }
+    footer{
+      text-align:center;
+      font-size:0.75rem;
+      color:var(--muted);
+      margin:1.2rem 0 0.8rem;
+    }
+  </style>
+</head>
+<body>
+<nav class="wms-nav">
+  <div class="wms-nav-title">Complément WMS</div>
+  <div class="wms-nav-links">
+    <a href="../index.html">Accueil</a>
+  </div>
+</nav>
+
+
+<header>
+  <h1>Complément WMS – Bins & Capacités</h1>
+  <p>Vue de référence des types de bins, zones et capacités cibles</p>
+</header>
+
+<main>
+
+  <div class="card">
+    <h2>🎯 Rôle de cette page</h2>
+    <p class="muted">
+      Cette page sert de <b>référence layout</b> pour l’entrepôt. Elle documente :
+      <br>• les types de bins (P1 → P7)
+      <br>• les zones principales (L2, L3A, L3B, L3C, L3D)
+      <br>• les capacités cibles utilisées dans les outils de consolidation / inventaire.
+      <br><br>
+      L’objectif est d’avoir une <b>version unique de la vérité</b> pour les discussions terrain,
+      les décisions et les paramètres des outils.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>🧱 Types de bins – Rôle et capacité cible</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Rôle principal</th>
+          <th>Exemples d’articles</th>
+          <th>Capacité cible (indicative)</th>
+          <th>Commentaires</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="pill pill-primary">P1</span></td>
+          <td>Picking prioritaire, petit format, haute rotation</td>
+          <td>Petites pièces de direction, suspension, visserie critique</td>
+          <td>Capacité faible à moyenne<br><span class="muted">(quantité limitée, accès ultra rapide)</span></td>
+          <td>Doit rester clean. C’est la zone la plus sensible pour les zero-pick.</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-primary">P2</span></td>
+          <td>Picking régulier, format moyen</td>
+          <td>Freins, pièces courantes, consommables</td>
+          <td>Capacité moyenne</td>
+          <td>Doit rester logique pour limiter les déplacements inutiles.</td>
+        </tr>
+        <tr>
+          <td><span class="pill">P3</span></td>
+          <td>Produits plus lourds / volumineux</td>
+          <td>Pièces plus lourdes, rotule, suspension complète</td>
+          <td>Capacité moyenne / supérieure</td>
+          <td>Utilisée en complément des P1/P2 quand le volume augmente.</td>
+        </tr>
+        <tr>
+          <td><span class="pill">P4</span></td>
+          <td>Volumineux, rotation plus faible</td>
+          <td>Boîtes de taille importante, kits complets, gros items</td>
+          <td>Capacité élevée</td>
+          <td>Important pour garder un layout logique par famille de produit.</td>
+        </tr>
+        <tr>
+          <td><span class="pill">P5 / P6</span></td>
+          <td>Backstock structuré</td>
+          <td>Surplus de conteneur, backup d’items critiques</td>
+          <td>Capacité élevée / très élevée</td>
+          <td>Ne devrait pas être utilisé en premier pour le picking.</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-warn">P7</span></td>
+          <td>Très volumineux / palettes complètes</td>
+          <td>Gros pneus, palettes complètes, produits lourds</td>
+          <td>Capacité très élevée</td>
+          <td>La consolidation peut nécessiter plusieurs bins voisins P7.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="muted" style="margin-top:0.5rem;">
+      Les capacités exactes (qty max par bin) peuvent être ajustées par zone dans les outils
+      de consolidation. Ici, on documente la logique générale, pas les chiffres détaillés.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>📍 Zones principales de l’entrepôt</h2>
+    <div class="zone-grid">
+      <div class="zone-card">
+        <div class="zone-title">L2</div>
+        <div class="muted">
+          Zone de stockage volumineux / P7 (ex: L2Axx). Utilisée pour les palettes, les pneus
+          et les produits très volumineux. Liée aux règles P7 dans les outils.
+        </div>
+      </div>
+      <div class="zone-card">
+        <div class="zone-title">L3A</div>
+        <div class="muted">
+          Mélange de P2, P3, P4, P6 et P7. Sert pour une partie importante du picking de
+          produits de taille moyenne/grande. Cruciale pour la consolidation.
+        </div>
+      </div>
+      <div class="zone-card">
+        <div class="zone-title">L3B</div>
+        <div class="muted">
+          Zone majoritairement en P2 (picking classique). Souvent utilisée pour des produits
+          à bonne rotation et format intermédiaire.
+        </div>
+      </div>
+      <div class="zone-card">
+        <div class="zone-title">L3C</div>
+        <div class="muted">
+          Alternance de P1 et P4. Permet d’avoir du petit picking (P1) avec du volumineux
+          à proximité (P4). Intéressant pour gérer des familles complètes.
+        </div>
+      </div>
+      <div class="zone-card">
+        <div class="zone-title">L3D</div>
+        <div class="muted">
+          Zone mixte P1, P2, P3 et P7. Utilisée à la fois pour des produits critiques et
+          des items volumineux. Doit être suivie de près en inventaire.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🧭 Lien avec les outils Complément WMS</h2>
+    <ul class="muted" style="padding-left:1rem;margin:0.2rem 0 0;">
+      <li><b>Inventaire V25</b> utilise le mapping bin → type (P1–P7) pour détecter les anomalies et proposer des bins vides compatibles.</li>
+      <li><b>Consolidation Ultra Focus</b> s’appuie sur les priorités de type (P1 → P7) et sur des capacités configurées par zone.</li>
+      <li><b>Tâches terrain</b> peut regrouper les mouvements par zone (L2, L3A, etc.) pour organiser le travail du plancher.</li>
+    </ul>
+  </div>
+
+</main>
+
+<footer>
+  © 2026 – Complément WMS – Version v1.0 · Phase 4
+</footer>
+
+</body>
+</html>
