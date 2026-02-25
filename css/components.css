@@ -1,0 +1,30 @@
+.tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+.tab { padding: 10px 12px; border-radius: 12px; background: rgba(7,23,50,.8); border: 1px solid rgba(149,195,255,.22); }
+.tab.active { background: var(--primary-soft); }
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 5, 16, 0.72);
+  display: grid;
+  place-items: center;
+  z-index: 200;
+}
+.modal {
+  width: min(92vw, 520px);
+  padding: 16px;
+}
+
+.toast {
+  position: fixed;
+  right: 12px;
+  left: 12px;
+  bottom: calc(env(safe-area-inset-bottom) + 88px);
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(149,195,255,.32);
+  background: rgba(12,35,74,.96);
+  z-index: 220;
+}
+.small { font-size: 0.85rem; color: var(--subtext); }
+.inline-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
