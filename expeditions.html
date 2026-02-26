@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <link rel="stylesheet" href="../../assets/css/wms.css">
+  <link rel="stylesheet" href="wms.css">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Complément WMS – Expéditions</title>
@@ -345,13 +345,13 @@ button.ghost{ background:#e5e7eb; color:#374151; }
 <nav class="wms-nav">
   <div class="wms-nav-title">Complément WMS</div>
   <div class="wms-nav-links">
-    <a href="../../index.html">Accueil</a>
+    <a href="index.html">Accueil</a>
   </div>
 </nav>
 
 <div class="wms-links">
   <span class="wms-links-label">Liens rapides :</span>
-  <a href="../../docs/historique.html">Historique & décisions</a>
+  <a href="historique.html">Historique & décisions</a>
 </div>
 
 <header>📦 Suivi des expéditions – Langelier</header>
@@ -941,7 +941,7 @@ function exportManifest(){
     return;
   }
   w.document.write("<html><head>
-  <link rel="stylesheet" href="../../assets/css/wms.css"><title>Manifeste "+currentDay+"</title></head><body>");
+  <link rel="stylesheet" href="wms.css"><title>Manifeste "+currentDay+"</title></head><body>");
   w.document.write("<h3>Manifeste des expéditions – "+currentDay+"</h3>");
   w.document.write(table);
   w.document.write("<footer>
