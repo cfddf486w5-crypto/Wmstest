@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <link rel="stylesheet" href="../assets/css/wms.css">
+  <meta charset="UTF-8">
+  <title>Complément WMS – À propos & Vision</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root{
+      --primary:#0072C6;
+      --bg:#F5F6F8;
+      --card:#ffffff;
+      --border:#E1E4E8;
+      --text:#111827;
+      --muted:#6b7280;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    header{
+      background:var(--primary);
+      color:#fff;
+      padding:1rem;
+    }
+    header h1{
+      margin:0;
+      font-size:1.25rem;
+    }
+    header p{
+      margin:0.35rem 0 0;
+      font-size:0.85rem;
+      opacity:0.9;
+    }
+    main{
+      max-width:980px;
+      margin:0 auto;
+      padding:0.9rem;
+    }
+    .card{
+      background:var(--card);
+      border-radius:12px;
+      border:1px solid var(--border);
+      padding:0.9rem 1rem;
+      margin-bottom:0.9rem;
+      box-shadow:0 1px 4px rgba(0,0,0,0.06);
+    }
+    .card h2{
+      margin:0 0 0.5rem;
+      font-size:1.05rem;
+    }
+    .muted{
+      color:var(--muted);
+      font-size:0.85rem;
+    }
+    .columns{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+      gap:0.8rem;
+      margin-top:0.4rem;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:0.15rem 0.55rem;
+      border-radius:999px;
+      font-size:0.75rem;
+      border:1px solid #d1d5db;
+      background:#f9fafb;
+      margin:0.1rem 0.15rem 0 0;
+    }
+    ul{
+      padding-left:1.1rem;
+      margin:0.35rem 0;
+      font-size:0.85rem;
+    }
+    li{ margin-bottom:0.2rem; }
+    .tagline{
+      font-size:0.95rem;
+      font-weight:600;
+      margin:0.3rem 0 0.1rem;
+    }
+    footer{
+      text-align:center;
+      font-size:0.75rem;
+      color:var(--muted);
+      margin:1.2rem 0 0.8rem;
+    }
+    @media(max-width:600px){
+      header h1{font-size:1.1rem;}
+      main{padding:0.7rem;}
+    }
+  </style>
+</head>
+<body>
+<nav class="wms-nav">
+  <div class="wms-nav-title">Complément WMS</div>
+  <div class="wms-nav-links">
+    <a href="../index.html">Accueil</a>
+  </div>
+</nav>
+
+
+<header>
+  <h1>Complément WMS – À propos & Vision</h1>
+  <p>Donner aux équipes terrain les outils qui manquent au WMS officiel</p>
+</header>
+
+<main>
+
+  <div class="card">
+    <h2>🚚 Pourquoi Complément existe</h2>
+    <p class="muted">
+      Complément WMS est né directement du <b>terrain</b>, dans un contexte où le WMS officiel
+      (Epicor Indago) ne couvre pas tous les besoins quotidiens :
+    </p>
+    <ul>
+      <li>difficultés à suivre les emplacements réels de l’inventaire,</li>
+      <li>peu de support pour la consolidation intelligente multi-bins,</li>
+      <li>manque d’outils simples pour planifier les déplacements,</li>
+      <li>suivi des palettes par transporteur limité ou dispersé.</li>
+    </ul>
+    <p class="muted">
+      L’objectif n’est pas de remplacer le WMS, mais de <b>le compléter</b> avec des outils
+      légers, rapides, pensés pour les superviseurs et les employés sur le plancher.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>🎯 Vision globale</h2>
+    <div class="columns">
+      <div>
+        <div class="tagline">Pour les équipes terrain</div>
+        <ul>
+          <li>Des écrans simples, lisibles, utilisables une main sur iPhone.</li>
+          <li>Des tâches claires : quoi faire, où aller, avec quel SKU.</li>
+          <li>Moins de surprises, moins de “zero-pick”.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="tagline">Pour les superviseurs</div>
+        <ul>
+          <li>Une meilleure lecture du layout réel.</li>
+          <li>Des décisions de consolidation basées sur des règles stables.</li>
+          <li>Une trace des décisions importantes (historique & tests).</li>
+        </ul>
+      </div>
+      <div>
+        <div class="tagline">Pour la direction</div>
+        <ul>
+          <li>Un levier d’amélioration continue sans toucher au WMS.</li>
+          <li>Une approche progressive, testée en réel avant d’aller plus loin.</li>
+          <li>Une base pour de futurs KPI (service, productivité, fiabilité inventaire).</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🧩 Les piliers de Complément WMS</h2>
+    <p class="muted">
+      Complément s’articule autour de quelques piliers simples :
+    </p>
+    <ul>
+      <li><b>Inventaire</b> – voir clairement où sont les produits, quels bins sont à surveiller, quels emplacements sont disponibles.</li>
+      <li><b>Consolidation</b> – réduire le nombre d’emplacements par SKU et optimiser les parcours de picking.</li>
+      <li><b>Expéditions</b> – suivre les palettes et les commandes par transporteur, de façon simple et fiable.</li>
+      <li><b>Règles métier</b> – documenter noir sur blanc la logique utilisée pour les décisions.</li>
+      <li><b>Tâches terrain</b> – traduire l’analyse en actions concrètes sur le plancher.</li>
+    </ul>
+    <p class="muted">
+      Chaque nouvel écran ou fonction doit s’aligner sur ces piliers.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>📈 Étapes d’évolution prévues</h2>
+    <div class="columns">
+      <div>
+        <div class="tagline">Phase 1 – Outils locaux (actuel)</div>
+        <ul>
+          <li>Applications HTML autonomes (GitHub / iPhone / PC).</li>
+          <li>Imports CSV manuels depuis Indago.</li>
+          <li>Stockage local (localStorage) pour le suivi terrain.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="tagline">Phase 2 – Connexion légère</div>
+        <ul>
+          <li>Point central pour les tâches terrain.</li>
+          <li>Historique partagé des décisions.</li>
+          <li>Possibilité de connecter un petit backend (API / table Azure / autre).</li>
+        </ul>
+      </div>
+      <div>
+        <div class="tagline">Phase 3 – Suite d’entreprise</div>
+        <ul>
+          <li>Multi-entrepôts (Langelier, Laval2, autres sites).</li>
+          <li>Règles métiers centralisées et configurables.</li>
+          <li>Tableau de bord KPI pour la direction (service, inventaire, productivité).</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🛠️ Principes de conception</h2>
+    <p class="muted">
+      Quelques principes guident chaque écran Complément WMS :
+    </p>
+    <ul>
+      <li><b>Terrain-first :</b> si ce n’est pas utilisable sur le plancher, ce n’est pas bon.</li>
+      <li><b>Lisibilité :</b> peu de texte, vocabulaire familier, information essentielle en premier.</li>
+      <li><b>Progressif :</b> on teste en petit, on ajuste, puis on élargit.</li>
+      <li><b>Respect du WMS :</b> Complément ne remplace pas Indago ; il comble ses trous.</li>
+      <li><b>Transparence :</b> les règles qui pilotent les décisions sont visibles et documentées.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>🔭 Et la suite ?</h2>
+    <p class="muted">
+      Complément WMS est pensé comme un <b>projet vivant</b> : chaque retour terrain, chaque nouvelle
+      idée d’amélioration peut devenir :
+    </p>
+    <ul>
+      <li>un ajustement de règle,</li>
+      <li>un nouveau rapport,</li>
+      <li>ou un nouvel écran dédié.</li>
+    </ul>
+    <p class="muted">
+      L’objectif final reste le même : <b>donner aux “guerriers du WMS”</b> les bons outils pour
+      simplifier le travail et offrir un meilleur service aux clients, sans alourdir le système.
+    </p>
+  </div>
+
+</main>
+
+<footer>
+  © 2026 – Complément WMS – Version v1.0 · Phase 4
+</footer>
+
+</body>
+</html>

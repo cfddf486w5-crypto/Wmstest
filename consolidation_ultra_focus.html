@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Consolidation – Ultra Focus</title>
+<style>
+:root{
+  --primary:#0072C6;
+  --bg:#F5F6F8;
+  --card:#ffffff;
+  --border:#E1E4E8;
+  --text:#222;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+header{
+  background:var(--primary);
+  color:#fff;
+  padding:0.8rem 1rem;
+  font-size:1.1rem;
+  font-weight:600;
+  text-align:center;
+}
+main{
+  padding:1rem;
+  max-width:1100px;
+  margin:auto;
+}
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:1rem;
+  margin-bottom:1rem;
+  box-shadow:0 1px 3px rgba(0,0,0,0.08);
+}
+h2{
+  margin:0 0 0.6rem 0;
+  font-size:1rem;
+}
+.muted{color:#555;font-size:0.85rem}
+
+button{
+  background:var(--primary);
+  color:#fff;
+  border:none;
+  border-radius:8px;
+  padding:0.6rem 0.9rem;
+  font-size:0.9rem;
+  cursor:pointer;
+}
+button.secondary{
+  background:#6b7280;
+}
+input[type=file]{
+  margin-top:0.5rem;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:0.85rem;
+}
+th,td{
+  border-bottom:1px solid var(--border);
+  padding:0.45rem;
+  text-align:left;
+}
+th{
+  background:#f1f5f9;
+  font-weight:600;
+}
+
+.prio-haute{color:#b91c1c;font-weight:600}
+.prio-moyenne{color:#92400e;font-weight:600}
+.prio-basse{color:#166534;font-weight:600}
+
+footer{
+  text-align:center;
+  font-size:0.75rem;
+  color:#666;
+  margin:2rem 0 1rem;
+}
+</style>
+</head>
+<body>
+
+<header>🧱 Consolidation – Ultra Focus</header>
+
+<main>
+
+<div class="card">
+  <h2>📥 Import inventaire par bin (CSV)</h2>
+  <p class="muted">Rapport Indago – Inventory by Bin</p>
+  <input type="file" id="fileInv" accept=".csv">
+  <div id="importStatus" class="muted"></div>
+</div>
+
+<div class="card">
+  <h2>📊 Diagnostic consolidation</h2>
+  <div id="diag" class="muted">Aucune donnée importée.</div>
+</div>
+
+<div class="card">
+  <h2>📋 Tâches de consolidation</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Bin source</th>
+        <th>Bin cible</th>
+        <th>Qty</th>
+        <th>Priorité</th>
+      </tr>
+    </thead>
+    <tbody id="taskBody">
+      <tr><td colspan="5" class="muted">Aucune tâche générée.</td></tr>
+    </tbody>
+  </table>
+  <div style="margin-top:0.7rem;display:flex;gap:0.5rem;">
+    <button onclick="exportCSV()">Export CSV</button>
+    <button class="secondary" onclick="exportPDF()">Export PDF</button>
+  </div>
+</div>
+
+</main>
+
+<footer>© 2026 – Complément – Tous droits réservés</footer>
+
+<script>
+let inventory=[];
+
+document.getElementById('fileInv').addEventListener('change',e=>{
+  const file=e.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    parseCSV(ev.target.result);
+    runConsolidation();
+  };
+  reader.readAsText(file,'ISO-8859-1');
+});
+
+function parseCSV(text){
+  const lines=text.split(/\r?\n/).filter(l=>l.trim());
+  const headers=lines[0].split(',').map(h=>h.trim().toLowerCase());
+  inventory=[];
+  for(let i=1;i<lines.length;i++){
+    const p=lines[i].split(',');
+    if(p.length!==headers.length) continue;
+    const row={};
+    headers.forEach((h,j)=>row[h]=p[j].trim());
+    inventory.push(row);
+  }
+  document.getElementById('importStatus').textContent=
+    inventory.length+' lignes importées.';
+}
+
+function runConsolidation(){
+  const groups={};
+  inventory.forEach(r=>{
+    const item=r.item||r.itemid||r.sku||r.displayline;
+    const bin=r.userbinid||r.bin;
+    const qty=parseFloat((r.qtyoh||'0').replace(',','.'))||0;
+    if(!item||!bin||qty<=0) return;
+    if(!groups[item]) groups[item]=[];
+    groups[item].push({bin,qty});
+  });
+
+  let tasks=[];
+  let multi=0;
+  Object.keys(groups).forEach(item=>{
+    const list=groups[item];
+    if(list.length<=1) return;
+    multi++;
+    list.sort((a,b)=>b.qty-a.qty);
+    const main=list[0];
+    list.slice(1).forEach(b=>{
+      tasks.push({
+        item,
+        from:b.bin,
+        to:main.bin,
+        qty:b.qty,
+        prio:list.length>=3?'Haute':'Moyenne'
+      });
+    });
+  });
+
+  document.getElementById('diag').textContent=
+    multi===0
+    ? 'Aucun item multi-bin.'
+    : multi+' items multi-bin détectés – '+tasks.length+' mouvements suggérés.';
+
+  const body=document.getElementById('taskBody');
+  body.innerHTML='';
+  if(!tasks.length){
+    body.innerHTML='<tr><td colspan="5" class="muted">Aucune tâche.</td></tr>';
+    return;
+  }
+  tasks.forEach(t=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=
+      '<td>'+t.item+'</td>'+
+      '<td>'+t.from+'</td>'+
+      '<td>'+t.to+'</td>'+
+      '<td>'+t.qty+'</td>'+
+      '<td class="prio-'+t.prio.toLowerCase()+'">'+t.prio+'</td>';
+    body.appendChild(tr);
+  });
+}
+
+function exportCSV(){
+  let csv='Item,Bin source,Bin cible,Qty,Priorité\n';
+  document.querySelectorAll('#taskBody tr').forEach(tr=>{
+    const tds=[...tr.children].map(td=>td.textContent);
+    if(tds.length===5) csv+=tds.join(',')+'\n';
+  });
+  download(csv,'taches_consolidation.csv','text/csv');
+}
+
+function exportPDF(){
+  let html='<h3>Tâches de consolidation</h3><table border="1" cellspacing="0" cellpadding="4">';
+  html+='<tr><th>Item</th><th>Bin source</th><th>Bin cible</th><th>Qty</th><th>Priorité</th></tr>';
+  document.querySelectorAll('#taskBody tr').forEach(tr=>{
+    html+='<tr>'+[...tr.children].map(td=>'<td>'+td.textContent+'</td>').join('')+'</tr>';
+  });
+  html+='</table>';
+  const w=window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
+  w.print();
+}
+
+function download(data,filename,type){
+  const blob=new Blob([data],{type});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+
+</body>
+</html>

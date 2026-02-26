@@ -1,0 +1,1011 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DL WMS – Générateur transfert < 20 (V2.9)</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#0f1b33;
+      --panel2:#0c1730;
+      --text:#e8eefc;
+      --muted:#a8b6d9;
+      --line:rgba(255,255,255,.10);
+      --accent:#3aa0ff;
+      --good:#33d17a;
+      --warn:#ffcc66;
+      --bad:#ff5a7a;
+      --chip:#12244a;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 14px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background: radial-gradient(1200px 800px at 20% -10%, rgba(58,160,255,.28), transparent 60%),
+                  radial-gradient(900px 700px at 110% 20%, rgba(255,90,122,.18), transparent 55%),
+                  linear-gradient(180deg, #070c16, #0b1220 30%, #070c16);
+      color:var(--text);
+      font-family:var(--sans);
+    }
+    header{
+      position:sticky; top:0; z-index:10;
+      backdrop-filter: blur(10px);
+      background: rgba(7,12,22,.65);
+      border-bottom: 1px solid var(--line);
+    }
+    .wrap{max-width:1100px; margin:0 auto; padding: 14px 14px;}
+    .topbar{
+      display:flex; align-items:center; gap:12px; justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      min-width: 260px;
+    }
+    .logo{
+      width:38px; height:38px; border-radius:12px;
+      background: linear-gradient(135deg, rgba(58,160,255,.95), rgba(255,90,122,.75));
+      box-shadow: var(--shadow);
+      display:grid; place-items:center;
+      font-weight:800; letter-spacing:.5px;
+    }
+    .title{line-height:1.05}
+    .title b{display:block; font-size:14px}
+    .title span{display:block; font-size:12px; color:var(--muted)}
+    .actions{display:flex; gap:8px; flex-wrap:wrap}
+    button{
+      appearance:none; border:1px solid var(--line);
+      background: rgba(15,27,51,.7);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius: 12px;
+      cursor:pointer;
+      font-weight:650;
+      box-shadow: 0 6px 18px rgba(0,0,0,.22);
+      display:inline-flex; align-items:center; gap:8px;
+    }
+    button:hover{border-color: rgba(58,160,255,.55)}
+    button:active{transform: translateY(1px)}
+    button.primary{background: linear-gradient(180deg, rgba(58,160,255,.9), rgba(58,160,255,.55)); border-color: rgba(58,160,255,.5)}
+    button.danger{background: linear-gradient(180deg, rgba(255,90,122,.85), rgba(255,90,122,.45)); border-color: rgba(255,90,122,.5)}
+    main{padding: 18px 14px 80px}
+    .grid{
+      max-width:1100px; margin:0 auto;
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:14px;
+    }
+    @media (max-width: 920px){
+      .grid{grid-template-columns: 1fr}
+      .brand{min-width:unset}
+    }
+    details{
+      background: rgba(15,27,51,.55);
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    summary{
+      list-style:none;
+      cursor:pointer;
+      padding: 14px 14px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      background: rgba(12,23,48,.55);
+      border-bottom: 1px solid var(--line);
+      user-select:none;
+    }
+    summary::-webkit-details-marker{display:none}
+    .sumleft{display:flex; gap:10px; align-items:center}
+    .badge{
+      font-size:12px; padding:5px 10px; border-radius:999px;
+      background: rgba(18,36,74,.85);
+      border: 1px solid rgba(255,255,255,.10);
+      color: var(--muted);
+      white-space:nowrap;
+    }
+    .badge.good{color:#c9ffe3; border-color: rgba(51,209,122,.25); background: rgba(51,209,122,.12)}
+    .badge.warn{color:#fff2cc; border-color: rgba(255,204,102,.25); background: rgba(255,204,102,.12)}
+    .badge.bad{color:#ffd1da; border-color: rgba(255,90,122,.25); background: rgba(255,90,122,.12)}
+    .content{padding: 12px 14px 14px}
+    .row{display:flex; gap:10px; flex-wrap:wrap}
+    label{display:block; font-size:12px; color:var(--muted); margin: 8px 0 6px}
+    input[type="file"], input[type="text"], input[type="number"], select{
+      width:100%;
+      padding:10px 10px;
+      border-radius: 12px;
+      border:1px solid var(--line);
+      background: rgba(7,12,22,.45);
+      color: var(--text);
+      outline:none;
+    }
+    input[type="number"]{font-family:var(--mono)}
+    .col{flex:1; min-width: 220px}
+    .help{font-size:12px; color: var(--muted); line-height:1.35; margin-top:8px}
+    .help code{font-family:var(--mono); font-size:11px; color:#d6e2ff; background: rgba(18,36,74,.6); padding:2px 6px; border-radius:8px; border:1px solid rgba(255,255,255,.09)}
+    table{
+      width:100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      overflow:hidden;
+      border-radius: 12px;
+    }
+    thead th{
+      text-align:left;
+      font-size:12px;
+      color: var(--muted);
+      padding: 10px 10px;
+      background: rgba(12,23,48,.65);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 64px;
+      z-index:1;
+    }
+    tbody td{
+      padding: 10px 10px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      vertical-align: top;
+    }
+    tbody tr:hover{background: rgba(58,160,255,.06)}
+    .mono{font-family: var(--mono)}
+    .right{text-align:right}
+    .chip{
+      display:inline-flex; align-items:center; gap:6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(18,36,74,.65);
+      border: 1px solid rgba(255,255,255,.09);
+      color: var(--muted);
+      font-size: 12px;
+      white-space:nowrap;
+    }
+    .chip strong{color: var(--text)}
+    .kpi{
+      display:grid; grid-template-columns: repeat(3, 1fr);
+      gap:10px;
+    }
+    @media (max-width: 560px){
+      .kpi{grid-template-columns: 1fr}
+    }
+    .kpi .card{
+      background: rgba(12,23,48,.40);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: 14px;
+      padding: 12px 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.22);
+    }
+    .kpi .card b{font-size:22px; display:block}
+    .kpi .card span{font-size:12px; color: var(--muted)}
+    footer{
+      position: fixed; left:0; right:0; bottom:0;
+      background: rgba(7,12,22,.72);
+      border-top:1px solid var(--line);
+      backdrop-filter: blur(10px);
+    }
+    footer .wrap{
+      display:flex; justify-content:space-between; align-items:center; gap:10px;
+      font-size: 12px; color: var(--muted);
+      padding: 10px 14px;
+      flex-wrap:wrap;
+    }
+    .pill{
+      padding: 4px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(18,36,74,.55);
+    }
+    .okDot, .badDot, .warnDot{
+      width:10px; height:10px; border-radius:999px; display:inline-block;
+      margin-right:8px;
+    }
+    .okDot{background: var(--good)}
+    .badDot{background: var(--bad)}
+    .warnDot{background: var(--warn)}
+    .box{
+      display:none;
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      line-height: 1.35;
+      white-space: pre-wrap;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(12,23,48,.35);
+    }
+    .box.ok{display:block; border-color: rgba(51,209,122,.25); background: rgba(51,209,122,.10); color:#c9ffe3}
+    .box.err{display:block; border-color: rgba(255,90,122,.35); background: rgba(255,90,122,.12); color:#ffd1da}
+    @media print{
+      header, footer, .actions, details > summary { display:none !important; }
+      body{ background:white !important; color:#000 !important; }
+      details{ border:none !important; box-shadow:none !important; }
+      .grid{ grid-template-columns: 1fr !important; }
+      thead th{ position:static !important; top:auto !important; }
+    }
+  </style>
+  <!-- Optional Excel export/import (offline only if cached). CSV remains the safe offline path. -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+<header>
+  <div class="wrap topbar">
+    <div class="brand">
+      <div class="logo">DL</div>
+      <div class="title">
+        <b>DL WMS – Générateur de transfert</b>
+        <span>Règles métier + bins + exclusions L2I/L2J/L2H (V2.9)</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="primary" id="btnCompute">⚡ Générer la liste</button>
+      <button id="btnExportCsv">⬇️ Export CSV</button>
+      <button id="btnExportXlsx">📄 Export Excel</button>
+      <button id="btnPrint">🖨️ Imprimer / PDF</button>
+      <button class="danger" id="btnReset">🧹 Reset</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="grid">
+    <section>
+      <details open>
+        <summary>
+          <div class="sumleft">
+            <span class="badge">📥 Imports</span>
+            <b>Fichiers (CSV / Excel) + mapping colonnes</b>
+          </div>
+          <span class="badge" id="badgeImports">0/2 chargés</span>
+        </summary>
+        <div class="content">
+          <div class="row">
+            <div class="col">
+              <label>Inventaire actuel (Langelier) – CSV ou Excel</label>
+              <input type="file" id="fileInv" accept=".csv,.xlsx,.xls,.xlsm,.xlsb,text/csv" />
+              <div class="help">
+                Colonnes: <code>item</code> <code>qty</code> <code>bin</code>.<br/>
+                ✅ Les bins utilisés viennent <b>uniquement</b> de l'inventaire.<br/>
+                🚫 Exclusions bins: <code>L2I</code> <code>L2J</code> <code>L2H</code>.
+              </div>
+            </div>
+            <div class="col">
+              <label>Réception conteneur – CSV ou Excel</label>
+              <input type="file" id="fileIn" accept=".csv,.xlsx,.xls,.xlsm,.xlsb,text/csv" />
+              <div class="help">
+                Colonnes: <code>item</code> <code>qty</code> (bin ignoré même s'il existe).<br/>
+                Si item répété, qty s'additionne.
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col">
+              <label>Locations Langelier (CSV/Excel) – optionnel</label>
+              <input type="file" id="fileLoc" accept=".csv,.xlsx,.xls,.xlsm,.xlsb,text/csv" />
+              <div class="help">
+                Importé pour V3 (règles/typologie). Pas utilisé dans le calcul V2.9.
+              </div>
+            </div>
+            <div class="col">
+              <label>Seuil (items à déménager si Total &lt; seuil)</label>
+              <input type="number" id="threshold" value="20" min="0" step="1" />
+              <div class="help">Règle: Total = Inv + Réception.</div>
+            </div>
+          </div>
+
+          <details>
+            <summary>
+              <div class="sumleft"><span class="badge">🧭</span><b>Mapping des colonnes</b></div>
+              <span class="badge">Auto-détection + override</span>
+            </summary>
+            <div class="content">
+              <div class="row">
+                <div class="col">
+                  <label>Inventaire – ITEM</label>
+                  <select id="invItemCol"></select>
+                </div>
+                <div class="col">
+                  <label>Inventaire – QTY</label>
+                  <select id="invQtyCol"></select>
+                </div>
+                <div class="col">
+                  <label>Inventaire – BIN</label>
+                  <select id="invBinCol"></select>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col">
+                  <label>Réception – ITEM</label>
+                  <select id="inItemCol"></select>
+                </div>
+                <div class="col">
+                  <label>Réception – QTY</label>
+                  <select id="inQtyCol"></select>
+                </div>
+              </div>
+              <div class="help">
+                💡 Exclusion “produits à 0 en inventaire” : si <b>Inv=0</b> et <b>Réception=0</b>, l’item est ignoré.
+                Si <b>Inv=0</b> et <b>Réception&gt;0</b>, l’item est inclus (bins vides).
+              </div>
+            </div>
+          </details>
+
+          <div class="box" id="msgBox"></div>
+        </div>
+      </details>
+
+      <details open>
+        <summary>
+          <div class="sumleft">
+            <span class="badge">📋</span>
+            <b>Résultat – produits à déménager</b>
+          </div>
+          <span class="badge bad" id="badgeResult">0 item</span>
+        </summary>
+        <div class="content">
+          <div class="row" style="justify-content:space-between; align-items:center">
+            <div class="row" style="gap:8px; align-items:center">
+              <span class="chip"><span class="badDot"></span><strong>À déménager</strong></span>
+              <span class="chip"><span class="okDot"></span><strong>OK</strong></span>
+              <span class="chip"><span class="warnDot"></span><strong>Sans bin</strong></span>
+            </div>
+            <div class="row" style="gap:8px; align-items:center">
+              <label style="margin:0">Recherche</label>
+              <input id="search" type="text" placeholder="Item / bin..." style="max-width:260px" />
+            </div>
+          </div>
+
+          <div style="overflow:auto; max-height: 54vh; border-radius:12px; border:1px solid rgba(255,255,255,.08);">
+            <table id="tbl">
+              <thead>
+                <tr>
+                  <th style="width:24%">Item</th>
+                  <th style="width:30%">Bin(s) inventaire</th>
+                  <th class="right" style="width:12%">Inv</th>
+                  <th class="right" style="width:12%">Réception</th>
+                  <th class="right" style="width:12%">Total</th>
+                  <th style="width:10%">Décision</th>
+                </tr>
+              </thead>
+              <tbody id="tbody">
+                <tr><td colspan="6" class="small">Importe tes fichiers puis clique <b>⚡ Générer la liste</b>.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="help">
+            Export CSV/Excel = uniquement les items <b>À déménager</b>.
+            Impression/PDF = page imprimable (tu peux “Enregistrer en PDF”).
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <aside>
+      <details open>
+        <summary>
+          <div class="sumleft"><span class="badge">📈</span><b>Statistiques</b></div>
+          <span class="badge" id="badgeStats">—</span>
+        </summary>
+        <div class="content">
+          <div class="kpi">
+            <div class="card">
+              <b id="kpiInv">0</b>
+              <span>Items inventaire (distincts)</span>
+            </div>
+            <div class="card">
+              <b id="kpiIn">0</b>
+              <span>Items réception (distincts)</span>
+            </div>
+            <div class="card">
+              <b id="kpiMove">0</b>
+              <span>Items à déménager</span>
+            </div>
+          </div>
+          <div class="help" style="margin-top:10px">
+            🚫 Bins exclus: <code>L2I*</code> <code>L2J*</code> <code>L2H*</code><br/>
+            ✅ Bins affichés = inventaire seulement.
+          </div>
+        </div>
+      </details>
+    </aside>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>© 2026 – DL WMS – Transfert &lt; 20 – V2.9</div>
+    <div class="pill">Hors-ligne • Aucun serveur • Données restent sur l’appareil</div>
+  </div>
+</footer>
+
+<script>
+/* ---------------------------
+   DL WMS – V2.9 (métier + UI)
+   - Lit 2 fichiers (inv + réception)
+   - Additionne qty par item dans chaque fichier
+   - Total = inv + réception
+   - Bins seulement depuis inventaire (exclusion L2I/L2J/L2H)
+   - Exclure produits inv=0 ET réception=0 (mais inclure si réception>0)
+   - Export CSV + Export Excel (si XLSX dispo)
+   - Imprimer / PDF via window.print()
+--------------------------- */
+
+const els = {
+  fileInv: document.getElementById('fileInv'),
+  fileIn: document.getElementById('fileIn'),
+  fileLoc: document.getElementById('fileLoc'),
+  threshold: document.getElementById('threshold'),
+  invItemCol: document.getElementById('invItemCol'),
+  invQtyCol: document.getElementById('invQtyCol'),
+  invBinCol: document.getElementById('invBinCol'),
+  inItemCol: document.getElementById('inItemCol'),
+  inQtyCol: document.getElementById('inQtyCol'),
+  btnCompute: document.getElementById('btnCompute'),
+  btnExportCsv: document.getElementById('btnExportCsv'),
+  btnExportXlsx: document.getElementById('btnExportXlsx'),
+  btnPrint: document.getElementById('btnPrint'),
+  btnReset: document.getElementById('btnReset'),
+  badgeImports: document.getElementById('badgeImports'),
+  badgeResult: document.getElementById('badgeResult'),
+  badgeStats: document.getElementById('badgeStats'),
+  tbody: document.getElementById('tbody'),
+  search: document.getElementById('search'),
+  msgBox: document.getElementById('msgBox'),
+  kpiInv: document.getElementById('kpiInv'),
+  kpiIn: document.getElementById('kpiIn'),
+  kpiMove: document.getElementById('kpiMove'),
+};
+
+let state = {
+  inv: null,         // {headers, rows}
+  incoming: null,    // {headers, rows}
+  locations: null,   // optional
+  result: [],        // computed rows (all)
+};
+
+const LS_KEY = "dlwms_transfer_under20_v29";
+
+/* ---------- UI messages ---------- */
+function setMsg(type, text){
+  els.msgBox.className = "box " + (type === "ok" ? "ok" : "err");
+  els.msgBox.style.display = "block";
+  els.msgBox.textContent = text;
+}
+function clearMsg(){
+  els.msgBox.className = "box";
+  els.msgBox.style.display = "none";
+  els.msgBox.textContent = "";
+}
+
+/* ---------- Helpers ---------- */
+function normHeader(h){
+  return (h||"")
+    .toString()
+    .trim()
+    .replace(/^\uFEFF/, "") // BOM
+    .toLowerCase()
+    .replace(/\s+/g,'')
+    .replace(/[^a-z0-9_]/g,'');
+}
+
+function detectDelimiter(text){
+  const firstLine = (text.split(/\r?\n/)[0] || "");
+  if (firstLine.includes(";")) return ";";
+  if (firstLine.includes(",")) return ",";
+  if (firstLine.includes("\t")) return "\t";
+  return "WS"; // best-effort whitespace
+}
+
+function parseDelimited(text){
+  const delim = detectDelimiter(text);
+  const cleaned = text.replace(/\r/g,"");
+  const lines = cleaned.split("\n").filter(l => l.trim() !== "");
+  if (!lines.length) return {headers:[], rows:[], delim};
+
+  if (delim === "WS"){
+    // Best-effort: split on whitespace
+    const headers = lines[0].trim().split(/\s+/).map(h => h.replace(/^\uFEFF/,""));
+    const rows = [];
+    for (let i=1;i<lines.length;i++){
+      const parts = lines[i].trim().split(/\s+/);
+      if (!parts.length) continue;
+      const o = {};
+      headers.forEach((h, idx) => o[h] = (parts[idx] ?? "").toString().trim());
+      if (Object.values(o).some(v => String(v).trim() !== "")) rows.push(o);
+    }
+    return {headers, rows, delim};
+  }
+
+  // Robust-ish CSV parser with quotes
+  const out = [];
+  let i=0, field="", row=[], inQuotes=false;
+  const pushField=()=>{ row.push(field); field=""; };
+  const pushRow=()=>{ out.push(row); row=[]; };
+
+  while(i<cleaned.length){
+    const c=cleaned[i];
+    if (inQuotes){
+      if (c === '"'){
+        if (cleaned[i+1] === '"'){ field+='"'; i+=2; continue; }
+        inQuotes=false; i++; continue;
+      } else { field+=c; i++; continue; }
+    } else {
+      if (c === '"'){ inQuotes=true; i++; continue; }
+      if (c === delim){ pushField(); i++; continue; }
+      if (c === '\n'){ pushField(); pushRow(); i++; continue; }
+      field+=c; i++; continue;
+    }
+  }
+  pushField(); pushRow();
+  if (out.length && out[out.length-1].every(v => (v||"").trim()==="")) out.pop();
+  if (!out.length) return {headers:[], rows:[], delim};
+
+  const headers = out[0].map(h => (h||"").toString().trim().replace(/^\uFEFF/,""));
+  const data = out.slice(1).filter(r => r.some(v => (v||"").toString().trim() !== ""));
+  const rows = data.map(r => {
+    const o = {};
+    headers.forEach((h, idx) => o[h] = (r[idx] ?? "").toString().trim());
+    return o;
+  });
+  return {headers, rows, delim};
+}
+
+function toNumber(val){
+  if (val == null) return 0;
+  const s = String(val).trim();
+  if (s === "") return 0;
+  let t = s.replace(/\s+/g,'');
+  const hasComma = t.includes(",");
+  const hasDot = t.includes(".");
+  if (hasComma && hasDot){
+    t = t.replace(/,/g,'');
+  } else if (hasComma && !hasDot){
+    t = t.replace(/,/g,'.');
+  }
+  t = t.replace(/[^0-9.\-]/g,'');
+  const n = Number(t);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function guessCols(headers){
+  const H = headers.map(h => ({raw:h, n:normHeader(h)}));
+  const itemHints = ["item","partnum","part","sku","product","produit","code","itemcode","itemid","partno"];
+  const qtyHints  = ["qty","qte","quantity","qtyoh","onhand","onhandqty","quantite","stock","qteoh"];
+  const binHints  = ["bin","location","locationname","userbinid","loc","emplacement"];
+
+  const findHint = (hints) => {
+    for (const hint of hints){
+      const found = H.find(x => x.n === hint);
+      if (found) return found.raw;
+    }
+    return null;
+  };
+
+  return {
+    item: findHint(itemHints) || headers[0] || "",
+    qty:  findHint(qtyHints)  || headers[1] || "",
+    bin:  findHint(binHints)  || headers[2] || "",
+  };
+}
+
+function fillSelect(sel, headers, selected){
+  sel.innerHTML = "";
+  headers.forEach(h => {
+    const opt = document.createElement("option");
+    opt.value = h;
+    opt.textContent = h || "(vide)";
+    if (h === selected) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function escapeHtml(s){
+  return String(s)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function nowStamp(){
+  const d = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`;
+}
+
+function downloadBlob(filename, blob){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function downloadText(filename, text){
+  downloadBlob(filename, new Blob([text], {type:"text/csv;charset=utf-8"}));
+}
+
+/* ---------- Local cache ---------- */
+function saveState(){
+  const slim = {
+    inv: state.inv ? {headers: state.inv.headers, rows: state.inv.rows} : null,
+    incoming: state.incoming ? {headers: state.incoming.headers, rows: state.incoming.rows} : null,
+    locations: state.locations ? {headers: state.locations.headers, rows: state.locations.rows} : null,
+    threshold: toNumber(els.threshold.value) || 20,
+  };
+  localStorage.setItem(LS_KEY, JSON.stringify(slim));
+}
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (data.threshold != null) els.threshold.value = data.threshold;
+    if (data.inv) state.inv = data.inv;
+    if (data.incoming) state.incoming = data.incoming;
+    if (data.locations) state.locations = data.locations;
+    hydrateMappings();
+    compute(false);
+  }catch(e){}
+}
+
+/* ---------- UI updates ---------- */
+function updateBadges(){
+  const count = (state.inv?1:0) + (state.incoming?1:0);
+  els.badgeImports.textContent = `${count}/2 chargés`;
+  els.badgeImports.className = "badge " + (count===2 ? "good" : count===1 ? "warn" : "");
+}
+
+function hydrateMappings(){
+  if (state.inv){
+    const g = guessCols(state.inv.headers);
+    fillSelect(els.invItemCol, state.inv.headers, els.invItemCol.value || g.item);
+    fillSelect(els.invQtyCol, state.inv.headers, els.invQtyCol.value || g.qty);
+    fillSelect(els.invBinCol, state.inv.headers, els.invBinCol.value || g.bin);
+  } else {
+    els.invItemCol.innerHTML = ""; els.invQtyCol.innerHTML = ""; els.invBinCol.innerHTML = "";
+  }
+  if (state.incoming){
+    const g = guessCols(state.incoming.headers);
+    fillSelect(els.inItemCol, state.incoming.headers, els.inItemCol.value || g.item);
+    fillSelect(els.inQtyCol, state.incoming.headers, els.inQtyCol.value || g.qty);
+  } else {
+    els.inItemCol.innerHTML = ""; els.inQtyCol.innerHTML = "";
+  }
+  updateBadges();
+}
+
+function renderStats(){
+  const invCount = state.inv ? new Set(state.inv.rows.map(r => (r[els.invItemCol.value]||"").toString().trim()).filter(Boolean)).size : 0;
+  const inCount  = state.incoming ? new Set(state.incoming.rows.map(r => (r[els.inItemCol.value]||"").toString().trim()).filter(Boolean)).size : 0;
+  const moveCount = state.result.filter(r => r.decision === "À déménager").length;
+
+  els.kpiInv.textContent = invCount.toLocaleString('fr-CA');
+  els.kpiIn.textContent = inCount.toLocaleString('fr-CA');
+  els.kpiMove.textContent = moveCount.toLocaleString('fr-CA');
+
+  els.badgeStats.textContent = `Inv ${invCount} • Réception ${inCount} • Déménager ${moveCount}`;
+}
+
+function renderTable(){
+  const q = (els.search.value || "").trim().toLowerCase();
+  const filtered = state.result.filter(r => {
+    if (!q) return true;
+    return (r.item || "").toLowerCase().includes(q) || (r.bins || "").toLowerCase().includes(q);
+  });
+
+  if (!state.inv || !state.incoming){
+    els.tbody.innerHTML = `<tr><td colspan="6" class="small">Importe tes fichiers puis clique <b>⚡ Générer la liste</b>.</td></tr>`;
+    els.badgeResult.textContent = "0 item";
+    els.badgeResult.className = "badge bad";
+    return;
+  }
+
+  if (!filtered.length){
+    els.tbody.innerHTML = `<tr><td colspan="6" class="small">Aucun résultat (filtre/recherche).</td></tr>`;
+    els.badgeResult.textContent = "0 item";
+    els.badgeResult.className = "badge warn";
+    return;
+  }
+
+  const fmt = n => Number.isFinite(n) ? n.toLocaleString('fr-CA') : "0";
+
+  els.tbody.innerHTML = filtered.map(r => `
+    <tr>
+      <td class="mono">${escapeHtml(r.item)}</td>
+      <td class="mono">${escapeHtml(r.bins || "")}</td>
+      <td class="right mono">${fmt(r.inv)}</td>
+      <td class="right mono">${fmt(r.inc)}</td>
+      <td class="right mono"><b>${fmt(r.total)}</b></td>
+      <td>${
+        r.decision === "À déménager"
+          ? `<span class="chip"><span class="badDot"></span><strong>À déménager</strong></span>`
+          : r.decision === "Sans bin"
+            ? `<span class="chip"><span class="warnDot"></span><strong>Sans bin</strong></span>`
+            : `<span class="chip"><span class="okDot"></span><strong>OK</strong></span>`
+      }</td>
+    </tr>
+  `).join("");
+
+  const moveCount = state.result.filter(r => r.decision === "À déménager").length;
+  els.badgeResult.textContent = `${moveCount} à déménager`;
+  els.badgeResult.className = "badge " + (moveCount ? "bad" : "good");
+}
+
+/* ---------- File reading ---------- */
+async function readFileAsText(file){
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => resolve(fr.result);
+    fr.onerror = () => reject(fr.error);
+    fr.readAsText(file);
+  });
+}
+async function readFileAsArrayBuffer(file){
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => resolve(fr.result);
+    fr.onerror = () => reject(fr.error);
+    fr.readAsArrayBuffer(file);
+  });
+}
+function isExcelFile(file){
+  const name = (file?.name || "").toLowerCase();
+  return name.endsWith(".xlsx") || name.endsWith(".xls") || name.endsWith(".xlsm") || name.endsWith(".xlsb");
+}
+function parseExcelToText(arrayBuffer){
+  if (typeof XLSX === "undefined"){
+    throw new Error("Import Excel indisponible hors-ligne (module non chargé). Utilise CSV.");
+  }
+  const data = new Uint8Array(arrayBuffer);
+  const wb = XLSX.read(data, {type:"array"});
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  // TSV to reduce delimiter ambiguity
+  return XLSX.utils.sheet_to_csv(ws, {FS:"\t", RS:"\n"});
+}
+
+async function handleImport(which, file){
+  clearMsg();
+  try{
+    let parsed;
+    if (isExcelFile(file)){
+      const ab = await readFileAsArrayBuffer(file);
+      const text = parseExcelToText(ab);
+      parsed = parseDelimited(text);
+    } else {
+      const text = await readFileAsText(file);
+      parsed = parseDelimited(text);
+    }
+
+    if (!parsed.headers.length) throw new Error("Aucun header détecté (fichier vide ou format non supporté).");
+    if (!parsed.rows.length) throw new Error("Header OK mais 0 ligne de données.");
+
+    if (which === "inv") state.inv = {headers: parsed.headers, rows: parsed.rows, delim: parsed.delim};
+    if (which === "in") state.incoming = {headers: parsed.headers, rows: parsed.rows, delim: parsed.delim};
+    if (which === "loc") state.locations = {headers: parsed.headers, rows: parsed.rows, delim: parsed.delim};
+
+    hydrateMappings();
+    saveState();
+    setMsg("ok", `✅ Import ${which.toUpperCase()} OK • ${parsed.rows.length.toLocaleString('fr-CA')} lignes • Délimiteur: ${parsed.delim === "\t" ? "TAB" : parsed.delim}`);
+  }catch(e){
+    setMsg("err", `Erreur import ${which.toUpperCase()} : ${e.message || e}`);
+  }
+}
+
+/* ---------- Business compute ---------- */
+function isExcludedBin(bin){
+  const b = (bin || "").toString().trim().toUpperCase();
+  return b.startsWith("L2I") || b.startsWith("L2J") || b.startsWith("L2H");
+}
+
+function compute(showMessages=true){
+  if (showMessages) clearMsg();
+
+  if (!state.inv || !state.incoming){
+    state.result = [];
+    renderTable();
+    renderStats();
+    return;
+  }
+
+  const invItemCol = els.invItemCol.value;
+  const invQtyCol  = els.invQtyCol.value;
+  const invBinCol  = els.invBinCol.value;
+  const inItemCol  = els.inItemCol.value;
+  const inQtyCol   = els.inQtyCol.value;
+
+  if (!invItemCol || !invQtyCol || !invBinCol || !inItemCol || !inQtyCol){
+    if (showMessages) setMsg("err", "Mapping incomplet. Sélectionne ITEM/QTY/BIN pour inventaire et ITEM/QTY pour réception.");
+    return;
+  }
+
+  const invMap = new Map();      // item -> qty sum (after bin exclusions)
+  const inMap  = new Map();      // item -> qty sum
+  const binMap = new Map();      // item -> Map(bin->qty) (after exclusions)
+
+  // INVENTAIRE: sum qty per item, but exclude rows in bins L2I/L2J/L2H
+  for (const r of state.inv.rows){
+    const item = (r[invItemCol] ?? "").toString().trim();
+    if (!item) continue;
+
+    const bin = (r[invBinCol] ?? "").toString().trim();
+    if (isExcludedBin(bin)) continue;
+
+    const q = toNumber(r[invQtyCol]);
+    // Add qty even if 0? It's harmless; we'll apply final filtering later.
+    invMap.set(item, (invMap.get(item)||0) + q);
+
+    if (bin){
+      if (!binMap.has(item)) binMap.set(item, new Map());
+      const m = binMap.get(item);
+      m.set(bin, (m.get(bin)||0) + q);
+    }
+  }
+
+  // RÉCEPTION: sum qty per item (bin ignored)
+  for (const r of state.incoming.rows){
+    const item = (r[inItemCol] ?? "").toString().trim();
+    if (!item) continue;
+    const q = toNumber(r[inQtyCol]);
+    inMap.set(item, (inMap.get(item)||0) + q);
+  }
+
+  const allItems = new Set([...invMap.keys(), ...inMap.keys()]);
+  const threshold = Math.max(0, Math.floor(toNumber(els.threshold.value) || 20));
+
+  const rows = [];
+  for (const item of allItems){
+    const inv = invMap.get(item) || 0;
+    const inc = inMap.get(item) || 0;
+
+    // NEW RULE: exclude products at 0 in inventory AND 0 in reception
+    if (inv === 0 && inc === 0) continue;
+
+    const total = inv + inc;
+
+    // bins: from inventory only (after exclusions), top 5 by qty desc (ignore zero qty bins in display)
+    let bins = "";
+    if (binMap.has(item)){
+      const entries = [...binMap.get(item).entries()]
+        .filter(([b,q]) => (toNumber(q) !== 0)) // don't show zero bins
+        .sort((a,b)=>toNumber(b[1]) - toNumber(a[1]));
+      const top = entries.slice(0,5).map(([b,q]) => `${b} (${Number(q).toLocaleString('fr-CA')})`);
+      bins = top.join(" • ") + (entries.length > 5 ? " • …" : "");
+    }
+
+    let decision = "OK";
+    if (total < threshold) decision = "À déménager";
+    if (!bins && inv > 0) decision = "Sans bin"; // inventory exists but bin not usable/missing
+
+    rows.push({item, bins, inv, inc, total, decision});
+  }
+
+  // sort: move first by total asc, then item
+  const rank = d => d === "À déménager" ? 0 : d === "Sans bin" ? 1 : 2;
+  rows.sort((a,b)=>{
+    const ra = rank(a.decision), rb = rank(b.decision);
+    if (ra !== rb) return ra - rb;
+    if (a.total !== b.total) return a.total - b.total;
+    return a.item.localeCompare(b.item);
+  });
+
+  state.result = rows;
+  saveState();
+
+  if (showMessages){
+    setMsg("ok", `✅ Calcul OK • Seuil=${threshold} • Résultats=${rows.length.toLocaleString('fr-CA')}`);
+  }
+  renderTable();
+  renderStats();
+}
+
+/* ---------- Exports ---------- */
+function exportCSV(){
+  const threshold = Math.max(0, Math.floor(toNumber(els.threshold.value) || 20));
+  const rows = state.result.filter(r => r.decision === "À déménager");
+  if (!rows.length){
+    setMsg("err", "Rien à exporter (aucun item “À déménager”).");
+    return;
+  }
+  const lines = [];
+  lines.push(["item","bins_inventaire","inv","reception","total","seuil","decision"].join(","));
+  rows.forEach(r => {
+    lines.push([
+      csvCell(r.item),
+      csvCell(r.bins || ""),
+      r.inv,
+      r.inc,
+      r.total,
+      threshold,
+      csvCell(r.decision)
+    ].join(","));
+  });
+  downloadText(`DLWMS_demenager_under_${threshold}_${nowStamp()}.csv`, lines.join("\n"));
+}
+
+function csvCell(v){
+  const s = String(v ?? "");
+  if (/[,"\n\r]/.test(s)) return `"${s.replaceAll('"','""')}"`;
+  return s;
+}
+
+function exportXLSX(){
+  const threshold = Math.max(0, Math.floor(toNumber(els.threshold.value) || 20));
+  const rows = state.result.filter(r => r.decision === "À déménager");
+  if (!rows.length){
+    setMsg("err", "Rien à exporter (aucun item “À déménager”).");
+    return;
+  }
+  if (typeof XLSX === "undefined"){
+    setMsg("err", "Export Excel indisponible hors-ligne (module XLSX non chargé). Utilise Export CSV ou connecte-toi une fois pour cache.");
+    return;
+  }
+  const data = rows.map(r => ({
+    item: r.item,
+    bins_inventaire: r.bins || "",
+    inv: r.inv,
+    reception: r.inc,
+    total: r.total,
+    seuil: threshold,
+    decision: r.decision
+  }));
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "A_demenager");
+  const out = XLSX.write(wb, {bookType:"xlsx", type:"array"});
+  downloadBlob(`DLWMS_demenager_under_${threshold}_${nowStamp()}.xlsx`, new Blob([out], {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));
+}
+
+function doReset(){
+  if (!confirm("Reset: effacer les imports et le cache local ?")) return;
+  localStorage.removeItem(LS_KEY);
+  state = {inv:null, incoming:null, locations:null, result:[]};
+  els.fileInv.value = "";
+  els.fileIn.value = "";
+  els.fileLoc.value = "";
+  els.search.value = "";
+  clearMsg();
+  updateBadges();
+  hydrateMappings();
+  renderTable();
+  renderStats();
+}
+
+/* ---------- Events ---------- */
+els.fileInv.addEventListener("change", e => {
+  const f = e.target.files && e.target.files[0];
+  if (f) handleImport("inv", f);
+});
+els.fileIn.addEventListener("change", e => {
+  const f = e.target.files && e.target.files[0];
+  if (f) handleImport("in", f);
+});
+els.fileLoc.addEventListener("change", e => {
+  const f = e.target.files && e.target.files[0];
+  if (f) handleImport("loc", f);
+});
+
+els.btnCompute.addEventListener("click", () => compute(true));
+els.btnExportCsv.addEventListener("click", exportCSV);
+els.btnExportXlsx.addEventListener("click", exportXLSX);
+els.btnPrint.addEventListener("click", () => window.print());
+els.btnReset.addEventListener("click", doReset);
+
+els.search.addEventListener("input", renderTable);
+els.threshold.addEventListener("change", () => { saveState(); compute(false); });
+
+/* Init */
+loadState();
+updateBadges();
+renderStats();
+</script>
+</body>
+</html>

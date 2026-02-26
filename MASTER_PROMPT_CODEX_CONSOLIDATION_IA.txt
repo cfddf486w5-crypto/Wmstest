@@ -1,0 +1,152 @@
+PROMPT CODEX — DL WMS (HTML OFFLINE) — PAGE CONSOLIDATION + IA LOCALE (SPÉC FINALISÉE)
+
+OBJECTIF
+- Reprendre/implémenter la page "Consolidation" de DL WMS (app HTML mobile-first iPhone), 100% offline.
+- Aucune dépendance externe (pas de CDN, pas de libs).
+- Stockage offline via localStorage (annexes + logs + KB IA).
+- UI iOS-like (cartes arrondies, ombres douces, typographie lisible, contraste pro).
+
+CONTRAINTES TECH
+- Offline first, tout dans le repo (HTML/CSS/JS).
+- Import fichiers: CSV inventaire, CSV réception, + XLSX bin map.
+- Export: CSV moves, impression (window.print) et export "Annexes" (JSON).
+
+STRUCTURE PAGE CONSOLIDATION (accordéons fermés par défaut)
+1) Barre actions: Import Inventaire | Import Réception | Import Bin Map (.xlsx) | Recalculer | Export CSV Moves | Imprimer | Export Annexes | Import Annexes
+2) Accordéon Règles (lecture) + lien vers Paramètres
+3) Accordéon Tâches (statuts Indago-like)
+4) Accordéon Déplacements recommandés (table)
+5) Accordéon Bins libres/vides
+6) Accordéon À valider (seulement)
+7) IA: (a) bouton "Pourquoi ?" sur chaque move + (b) panneau chat IA en bas (repliable)
+
+RÈGLES MÉTIER — DONNÉES ET NORMALISATION
+- Un BIN = un seul SKU (strict).
+- Un SKU peut être réparti sur plusieurs bins (split) mais un bin ne contient jamais 2 SKU.
+- Bin libre = bin sans SKU ou qty=0 (qty=0 ne rend pas le bin occupé).
+- Agrégation imports: additionner par couple SKU+BIN (inventaire ET réception).
+- Réception: si BIN vide => source virtuelle RECEPTION_STAGING (compte dans total_after, peut être source, et si vidé = bin libéré).
+
+COLONNES ATTENDUES (import)
+- Inventaire CSV minimum: item, qty, bin, description (description obligatoire pour diamètre).
+- Réception CSV minimum: item, qty, bin (bin peut être vide).
+- Bin Map XLSX: Col A = bin, Col B = type, avec en-tête; types exacts: P1..P7 (majuscule).
+- Auto-détection séparateur & encodage à l’import; Paramètres = préférences en cas d’ambiguïté.
+- Encodage paramétrable: défaut UTF-8, fallback ISO-8859-1 (Latin-1) si erreur.
+
+DIAMÈTRE — EXTRACTION + OVERRIDE
+- Units/palette:
+  - 14-15" => 28 / palette
+  - 16-17-18" => 24 / palette
+  - 19-20" => 20 / palette
+  - 21-22" => 16 / palette
+  - 24-26" => 8 / palette
+- Extraction hybride depuis inventaire.description:
+  1) Pattern mags NxM prioritaire: (19x7.0) => diamètre=19 (nombre avant x)
+  2) Patterns spécifiques: R17, 17", 17 PO, 17IN, etc.
+  3) Fallback: rechercher un nombre 14..26 n’importe où
+  - Si plusieurs diamètres détectés (ex: 17/18) => prendre le plus grand.
+  - Ne PAS déduire depuis formats pneus 235/55R19.
+- Si diamètre introuvable => "DIAMÈTRE INCONNU"
+  - Mettre SKU en section "À valider"
+  - Créer tâche obligatoire "Identifier diamètre"
+  - Permettre override manuel diamètre au niveau SKU seulement (localStorage: SKU->diamètre).
+
+RAPPORTS (basés sur total_after = inventory + receipt + staging)
+- Rapport 1: Toilette_Cafeteria = total_after 1..6
+- Rapport 2: Verifier_Transfert = total_after 7..20
+- Les cas "À valider" sont exclus des rapports.
+- Export/Impression inclut: Rapport1 + Rapport2 + À valider + Tâches
+
+CAPACITÉ / REQUIRED TYPE
+- Calcul requiredType basé sur total_after:
+  - Convertir qty -> palettes = ceil(qty / units_per_pallet(diamètre))
+  - Mapping pallets->type (max palettes):
+    - P1 max 3
+    - P2 max 6
+    - P3 max 9
+    - P4 max 12
+    - P5 max 15
+    - P6 max 18
+    - P7 max 21
+- Notes terrain: 60 appartient à P1, 61 à P2. (et règle: P1=2-3 palettes; 4 palettes => P2; 1 palette => rapport Toilette/Cafeteria)
+- Une bin ne peut être que d’un seul type à la fois (bin map fait foi).
+- Criticité bins: P7 critique; P6..P3 moyen; P2..P1 faible.
+
+SÉLECTION CIBLE — PRIORITÉS E/B/C/D
+- Ordre de décision (priorité): E=1, B=2, C=3, D=4 (mais le chemin cible final est ci-dessous).
+- Chemin de sélection cible (validé):
+  1) B: bin existant contenant déjà le SKU, seulement si type requis/compatible + capacité OK
+     - si fallback type activé: type >= requis accepté
+  2) E: bin libre du type requis
+  3) C: split (2 bins d’abord, puis 3 si nécessaire; maxTargetBins paramétrable, défaut=3)
+  4) D: tri travel / tie-breakers
+- Fallback type:
+  - Paramètre (OFF par défaut = strict type requis)
+  - Si ON: autoriser type >= requis (jamais plus petit)
+  - Choisir le plus petit type possible >= requis
+  - Tag "Fallback type" si type > requis
+- Si aucune cible possible (même en split) => SKU en "À valider" + tâche obligatoire "Identifier/créer une bin du type requis"
+
+RÈGLE MOVES RECOMMANDÉS
+- Proposer un move uniquement s’il libère complètement au moins un bin source (bin vide après déplacement).
+- Si un SKU est en split, remplir en priorité le bin existant (B) si disponible (type/capacité OK), puis le reste dans les autres cibles.
+- Les moves qui ne libèrent aucun bin ne sont pas affichés (ni UI ni rapports).
+
+TRI / TRAVEL / PARSING BIN
+- Formats bin:
+  - L2A01 => zone=L2, ranger=A, bin=01
+  - L2H19A01 => zone=L2, ranger=H, bin=19, hauteur=A, pos=01
+- Zones textuelles à supporter: L3toilette, L5cafétéria, L5toilette, L2reception, L2tempon
+  - Traitement: zone principale + sousZone (zone=L3, sousZone=toilette)
+  - Tri travel: zone (priorité) -> ranger -> bin -> hauteur -> position -> sousZone (à la fin)
+- Ordre zones (priorité personnalisée via Paramètres):
+  - L3 puis L2 puis L5, puis toutes les autres en alphanum par défaut
+  - UI Paramètres: liste éditable + preset L3/L2/L5 + drag&drop
+
+TÂCHES + LOGS
+- Statuts tâches: Nouveau / En traitement / Complété
+- Tâches auto "obligatoires" pour: DIAMÈTRE INCONNU, TYPE INCONNU, AUCUNE BIN CIBLE POSSIBLE, etc.
+- Historique moves: log automatique en localStorage (date/heure, user, item, sources, to_bin, qty, report, tags)
+- Identification user: sélecteur local (liste users + utilisateur actif) en localStorage, appliqué aux logs et tâches.
+
+EXPORT CSV MOVES (minimal opérationnel)
+- Colonnes fixes dans l’ordre:
+  item, to_bin, move_qty, report, from_bin1, qty1, from_bin2, qty2, ... (max sources paramétrable, défaut=3), pallets_est(optional dernier)
+- report = noms FR: Toilette_Cafeteria / Verifier_Transfert
+- Tri des sources for export:
+  - RECEPTION_STAGING toujours en premier (si présent)
+  - puis par criticité type (P7→P1)
+  - puis qty desc
+- pallets_est:
+  - Optionnelle via Paramètres (ON par défaut)
+  - Calcul: floor(move_qty / units_per_pallet)
+
+ANNEXES (backup/migration)
+- Stocker offline en localStorage:
+  - settings, bin_map, diameter_overrides, users, active_user, tasks, move_logs, kb_notes, ai_chat_history
+- Paramètres: Export Annexes (JSON) / Import Annexes (JSON), inclure tout par défaut.
+- Versionner le JSON annexes pour migrations futures.
+
+IA LOCALE (OFFLINE)
+- Deux sources: FAQ fixe intégrée + KB notes éditables (localStorage).
+- Utilisée par:
+  - Bouton "Pourquoi ?" par move (explication structurée)
+  - Panneau chat IA en bas (repliable) pour questions/règles/imports
+- Le chat doit pouvoir répondre en se basant sur les règles/paramètres/annexes et expliquer les décisions.
+
+UI PARAMÈTRES (pro)
+- Onglet Paramètres: recherche + catégories; sections repliables par défaut
+- Catégories suggérées: Consolidation, CSV, Diamètre, Bin Map, Zones/Travel, Split/Fallback, IA, Utilisateurs, Tâches/Logs, Annexes
+
+DÉLIVRABLE ATTENDU
+- Implémenter/mettre à jour la page Consolidation + module règles.
+- Mettre à jour Paramètres (tous les champs listés).
+- Ajouter import XLSX Bin Map (sans librairie externe: implémenter un parseur minimal OU convertir en CSV côté outil; si parseur XLSX trop lourd, fournir une alternative offline documentée).
+- Ajouter exports (CSV moves, annexes JSON) et impression CSS print.
+- Ajouter IA locale: "Pourquoi ?" + chat panel.
+
+IMPORTANT
+- Aucune dépendance externe.
+- Tests rapides: fournir fichiers exemples (inventaire/reception) et valider:
+  - cas staging, cas diamètre inconnu, cas split 2/3, cas no-target -> À valider + tâche.

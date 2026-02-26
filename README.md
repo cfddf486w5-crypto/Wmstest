@@ -1,46 +1,61 @@
-# DL WMS (PWA Offline)
+# DL WMS – Générateur de transfert < seuil (V2.2 – OFFLINE)
 
-Application WMS iPhone-first en HTML/CSS/JS vanilla, sans API ni dépendance externe.
+## Objectif
+Importer **Inventaire actuel (Langelier)** + **Arrivages conteneur** et générer la liste des produits dont le **stock futur < seuil** (défaut 20).
 
-## Lancer en local
+## Important (Excel en mode 100% offline)
+Un fichier **Excel (.xlsx)** est un **ZIP** interne. Un navigateur ne peut pas le lire nativement **sans librairie JS externe**.
+
+➡️ Solution OFFLINE fournie :
+1) Convertis ton Excel en CSV avec le convertisseur inclus
+2) Importe le CSV dans l'app
+
+## 1) Ouvrir l'app
+- Double-clique `index.html` (Chrome/Edge recommandé)
+
+## 2) Convertir Excel → CSV (Windows laptop)
+Option A (facile): **double-clique** `convert_xlsx_to_csv.bat`
+- Détecte automatiquement `py -3` ou `python`
+- Ça te demande le chemin du fichier Excel
+- Ça te sort un CSV dans le même dossier (même nom + `.csv`)
+
+Option B (manuel):
 ```bash
-python3 -m http.server 8080
+python convert_xlsx_to_csv.py "C:\chemin\fichier.xlsx"
 ```
-Puis ouvrir `http://localhost:8080`.
 
-## Installation PWA sur iPhone (Safari)
-1. Ouvrir l’app dans Safari.
-2. Bouton Partager.
-3. **Ajouter à l’écran d’accueil**.
-4. Ouvrir l’icône **DL WMS** (mode standalone).
+## 3) Importer dans l'app
+- Import **CSV Inventaire**
+- Import **CSV Conteneur**
+- Clique **⚡ Générer la liste**
+- **⬇️ Export CSV** (uniquement “À transférer”)
 
-## Routes hash
-- `#/modules`
-- `#/consolidation`, `#/consolidation/charger`, `#/consolidation/optimiser`, `#/consolidation/historique`, `#/consolidation/statistiques`
-- `#/remise`, `#/remise/generer`, `#/remise/suivant`, `#/remise/verifier`, `#/remise/bins`
-- `#/shipping`, `#/shipping/create`, `#/shipping/scan`, `#/shipping/history`, `#/shipping/exports`, `#/shipping/settings`
-- `#/inventaire`, `#/inventaire/scan`, `#/inventaire/recherche`, `#/inventaire/import`, `#/inventaire/history`
-- `#/history`
-- `#/settings`
 
-## Données offline
-- Stockage principal: `IndexedDB` (DB `dlwms_db_v1`)
-- Fallback: `localStorage` (`dlwms_<store>`)
-- Stores: settings, users, logs, consolidation, remise, shipping, inventaire, IA (FAQ/notes/chat).
 
-## Arborescence
-- `index.html` shell + IA + navbar
-- `css/` thème/layout/composants
-- `js/` app/router/store/ui/ai/export
-- `pages/` HTML + JS par module
-- `sw.js` precache cache-first
-- `manifest.webmanifest`
+## Revérification avant de figer la version
+Checklist rapide recommandée avant de livrer:
+- Ouvrir `index.html` et confirmer la version affichée (**V2.2**) dans le titre, l’en-tête et le pied de page.
+- Importer 2 CSV de test (inventaire + conteneur) et valider que le bouton **⚡ Générer la liste** produit des résultats.
+- Vérifier que **⬇️ Export CSV** n’exporte que les lignes **À transférer**.
+- Fermer/réouvrir la page et confirmer la restauration du cache local.
 
-## Export
-- CSV / “Excel” (CSV)
-- PDF simple via `window.print()`
+## Compatibilité Windows améliorée
+- L’app web accepte maintenant automatiquement les CSV séparés par **virgule**, **point-virgule** ou **tabulation**.
+- Les nombres de type `1 234`, `1,234`, `1.234`, `1,5` sont mieux interprétés.
+- Les items sont fusionnés sans sensibilité à la casse (`abc` = `ABC`) pour éviter les doublons.
 
-## Contraintes respectées
-- 100% offline-first
-- 0 framework, 0 CDN, 0 API
-- Compatible GitHub Pages (hash routing)
+## Formats
+Le convertisseur prend la **1ère feuille** du fichier.
+Si tu veux une feuille précise, tu peux la spécifier:
+```bash
+python convert_xlsx_to_csv.py "fichier.xlsx" --sheet "NomDeFeuille"
+```
+
+Astuce Windows/Excel:
+- Le script exporte par défaut en **UTF-8 BOM** (meilleure compatibilité accents sous Excel Windows).
+- Tu peux choisir un séparateur différent si ton Excel attend `;`:
+```bash
+python convert_xlsx_to_csv.py "fichier.xlsx" --delimiter ";"
+```
+
+© 2026 – DL WMS
